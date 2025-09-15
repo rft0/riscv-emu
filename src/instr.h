@@ -14,6 +14,7 @@ typedef enum {
 } inst_fmt_t;
 
 typedef struct {
+    uint32_t raw;
     uint8_t opcode;   // bits 6:0
     uint8_t rd;       // bits 11:7
     uint8_t funct3;   // bits 14:12
