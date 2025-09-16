@@ -66,6 +66,19 @@ extern void exec_sraw(cpu_t *cpu, uint32_t instr);
 extern void exec_lwu(cpu_t *cpu, uint32_t instr);
 extern void exec_ld(cpu_t *cpu, uint32_t instr);
 extern void exec_sd(cpu_t *cpu, uint32_t instr);
+extern void exec_mul(cpu_t *cpu, uint32_t instr);
+extern void exec_mulh(cpu_t *cpu, uint32_t instr);
+extern void exec_mulhsu(cpu_t *cpu, uint32_t instr);
+extern void exec_mulhu(cpu_t *cpu, uint32_t instr);
+extern void exec_div(cpu_t *cpu, uint32_t instr);
+extern void exec_divu(cpu_t *cpu, uint32_t instr);
+extern void exec_rem(cpu_t *cpu, uint32_t instr);
+extern void exec_remu(cpu_t *cpu, uint32_t instr);
+extern void exec_mulw(cpu_t *cpu, uint32_t instr);
+extern void exec_divw(cpu_t *cpu, uint32_t instr);
+extern void exec_divuw(cpu_t *cpu, uint32_t instr);
+extern void exec_remw(cpu_t *cpu, uint32_t instr);
+extern void exec_remuw(cpu_t *cpu, uint32_t instr);
 
 instr_dispatch_table_t instr_dispatch_table[] = {
     {0x0000007F, 0x00000037, exec_lui},
@@ -131,4 +144,17 @@ instr_dispatch_table_t instr_dispatch_table[] = {
     {0x0000707F, 0x00006003, exec_lwu},
     {0x0000707F, 0x00003003, exec_ld},
     {0x0000707F, 0x00003023, exec_sd},
+    {0xFE00707F, 0x02000033, exec_mul},
+    {0xFE00707F, 0x02001033, exec_mulh},
+    {0xFE00707F, 0x02002033, exec_mulhsu},
+    {0xFE00707F, 0x02003033, exec_mulhu},
+    {0xFE00707F, 0x02004033, exec_div},
+    {0xFE00707F, 0x02005033, exec_divu},
+    {0xFE00707F, 0x02006033, exec_rem},
+    {0xFE00707F, 0x02007033, exec_remu},
+    {0xFE00707F, 0x0200003B, exec_mulw},
+    {0xFE00707F, 0x0200403B, exec_divw},
+    {0xFE00707F, 0x0200503B, exec_divuw},
+    {0xFE00707F, 0x0200603B, exec_remw},
+    {0xFE00707F, 0x0200703B, exec_remuw},
 };

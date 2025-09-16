@@ -104,3 +104,7 @@ divw        opcode=0x3B funct3=0x4 funct7=0x1
 divuw       opcode=0x3B funct3=0x5 funct7=0x1
 remw        opcode=0x3B funct3=0x6 funct7=0x1
 remuw       opcode=0x3B funct3=0x7 funct7=0x1
+
+# --------
+# RV32A
+# --------

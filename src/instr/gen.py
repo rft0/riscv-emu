@@ -60,7 +60,7 @@ if __name__ == "__main__":
         f.write('#include "table.h"\n')
         f.write('#include "../cpu.h"\n\n')
         for _, _, name in instr_table:
-            f.write(f'extern void exec_{name}(cpu_t *cpu, uint32_t instr);\n')
+            f.write(f'extern void exec_{name}(cpu_t* cpu, uint32_t instr);\n')
 
         f.write('\ninstr_dispatch_table_t instr_dispatch_table[] = {\n')
         for mask, match, name in instr_table:
