@@ -1,86 +1,89 @@
-// This file is auto-generated. (2025-09-16 00)
+// --------------------------------------------
+// This file is auto-generated. (2025-09-16 16)
+
+// --------------------------------------------
 
 #include "table.h"
 #include "../cpu.h"
 
-extern void exec_lui(cpu_t *cpu, uint32_t instr);
-extern void exec_auipc(cpu_t *cpu, uint32_t instr);
-extern void exec_addi(cpu_t *cpu, uint32_t instr);
-extern void exec_slti(cpu_t *cpu, uint32_t instr);
-extern void exec_sltiu(cpu_t *cpu, uint32_t instr);
-extern void exec_xori(cpu_t *cpu, uint32_t instr);
-extern void exec_ori(cpu_t *cpu, uint32_t instr);
-extern void exec_andi(cpu_t *cpu, uint32_t instr);
-extern void exec_slli(cpu_t *cpu, uint32_t instr);
-extern void exec_srli(cpu_t *cpu, uint32_t instr);
-extern void exec_srai(cpu_t *cpu, uint32_t instr);
-extern void exec_add(cpu_t *cpu, uint32_t instr);
-extern void exec_sub(cpu_t *cpu, uint32_t instr);
-extern void exec_sll(cpu_t *cpu, uint32_t instr);
-extern void exec_slt(cpu_t *cpu, uint32_t instr);
-extern void exec_sltu(cpu_t *cpu, uint32_t instr);
-extern void exec_xor(cpu_t *cpu, uint32_t instr);
-extern void exec_srl(cpu_t *cpu, uint32_t instr);
-extern void exec_sra(cpu_t *cpu, uint32_t instr);
-extern void exec_or(cpu_t *cpu, uint32_t instr);
-extern void exec_and(cpu_t *cpu, uint32_t instr);
-extern void exec_fence(cpu_t *cpu, uint32_t instr);
-extern void exec_fence_i(cpu_t *cpu, uint32_t instr);
-extern void exec_cssrw(cpu_t *cpu, uint32_t instr);
-extern void exec_csrrs(cpu_t *cpu, uint32_t instr);
-extern void exec_csrrc(cpu_t *cpu, uint32_t instr);
-extern void exec_csrrwi(cpu_t *cpu, uint32_t instr);
-extern void exec_csrrsi(cpu_t *cpu, uint32_t instr);
-extern void exec_csrrci(cpu_t *cpu, uint32_t instr);
-extern void exec_ecall(cpu_t *cpu, uint32_t instr);
-extern void exec_ebreak(cpu_t *cpu, uint32_t instr);
-extern void exec_sret(cpu_t *cpu, uint32_t instr);
-extern void exec_mret(cpu_t *cpu, uint32_t instr);
-extern void exec_wfi(cpu_t *cpu, uint32_t instr);
-extern void exec_sfence_vma(cpu_t *cpu, uint32_t instr);
-extern void exec_lb(cpu_t *cpu, uint32_t instr);
-extern void exec_lh(cpu_t *cpu, uint32_t instr);
-extern void exec_lw(cpu_t *cpu, uint32_t instr);
-extern void exec_lbu(cpu_t *cpu, uint32_t instr);
-extern void exec_lhu(cpu_t *cpu, uint32_t instr);
-extern void exec_sb(cpu_t *cpu, uint32_t instr);
-extern void exec_sh(cpu_t *cpu, uint32_t instr);
-extern void exec_sw(cpu_t *cpu, uint32_t instr);
-extern void exec_jal(cpu_t *cpu, uint32_t instr);
-extern void exec_jalr(cpu_t *cpu, uint32_t instr);
-extern void exec_beq(cpu_t *cpu, uint32_t instr);
-extern void exec_bne(cpu_t *cpu, uint32_t instr);
-extern void exec_blt(cpu_t *cpu, uint32_t instr);
-extern void exec_bge(cpu_t *cpu, uint32_t instr);
-extern void exec_bltu(cpu_t *cpu, uint32_t instr);
-extern void exec_bgeu(cpu_t *cpu, uint32_t instr);
-extern void exec_addiw(cpu_t *cpu, uint32_t instr);
-extern void exec_slliw(cpu_t *cpu, uint32_t instr);
-extern void exec_srliw(cpu_t *cpu, uint32_t instr);
-extern void exec_sraiw(cpu_t *cpu, uint32_t instr);
-extern void exec_addw(cpu_t *cpu, uint32_t instr);
-extern void exec_subw(cpu_t *cpu, uint32_t instr);
-extern void exec_sllw(cpu_t *cpu, uint32_t instr);
-extern void exec_srlw(cpu_t *cpu, uint32_t instr);
-extern void exec_sraw(cpu_t *cpu, uint32_t instr);
-extern void exec_lwu(cpu_t *cpu, uint32_t instr);
-extern void exec_ld(cpu_t *cpu, uint32_t instr);
-extern void exec_sd(cpu_t *cpu, uint32_t instr);
-extern void exec_mul(cpu_t *cpu, uint32_t instr);
-extern void exec_mulh(cpu_t *cpu, uint32_t instr);
-extern void exec_mulhsu(cpu_t *cpu, uint32_t instr);
-extern void exec_mulhu(cpu_t *cpu, uint32_t instr);
-extern void exec_div(cpu_t *cpu, uint32_t instr);
-extern void exec_divu(cpu_t *cpu, uint32_t instr);
-extern void exec_rem(cpu_t *cpu, uint32_t instr);
-extern void exec_remu(cpu_t *cpu, uint32_t instr);
-extern void exec_mulw(cpu_t *cpu, uint32_t instr);
-extern void exec_divw(cpu_t *cpu, uint32_t instr);
-extern void exec_divuw(cpu_t *cpu, uint32_t instr);
-extern void exec_remw(cpu_t *cpu, uint32_t instr);
-extern void exec_remuw(cpu_t *cpu, uint32_t instr);
+extern void exec_lui(cpu_t* cpu, uint32_t instr);
+extern void exec_auipc(cpu_t* cpu, uint32_t instr);
+extern void exec_addi(cpu_t* cpu, uint32_t instr);
+extern void exec_slti(cpu_t* cpu, uint32_t instr);
+extern void exec_sltiu(cpu_t* cpu, uint32_t instr);
+extern void exec_xori(cpu_t* cpu, uint32_t instr);
+extern void exec_ori(cpu_t* cpu, uint32_t instr);
+extern void exec_andi(cpu_t* cpu, uint32_t instr);
+extern void exec_slli(cpu_t* cpu, uint32_t instr);
+extern void exec_srli(cpu_t* cpu, uint32_t instr);
+extern void exec_srai(cpu_t* cpu, uint32_t instr);
+extern void exec_add(cpu_t* cpu, uint32_t instr);
+extern void exec_sub(cpu_t* cpu, uint32_t instr);
+extern void exec_sll(cpu_t* cpu, uint32_t instr);
+extern void exec_slt(cpu_t* cpu, uint32_t instr);
+extern void exec_sltu(cpu_t* cpu, uint32_t instr);
+extern void exec_xor(cpu_t* cpu, uint32_t instr);
+extern void exec_srl(cpu_t* cpu, uint32_t instr);
+extern void exec_sra(cpu_t* cpu, uint32_t instr);
+extern void exec_or(cpu_t* cpu, uint32_t instr);
+extern void exec_and(cpu_t* cpu, uint32_t instr);
+extern void exec_fence(cpu_t* cpu, uint32_t instr);
+extern void exec_fence_i(cpu_t* cpu, uint32_t instr);
+extern void exec_cssrw(cpu_t* cpu, uint32_t instr);
+extern void exec_csrrs(cpu_t* cpu, uint32_t instr);
+extern void exec_csrrc(cpu_t* cpu, uint32_t instr);
+extern void exec_csrrwi(cpu_t* cpu, uint32_t instr);
+extern void exec_csrrsi(cpu_t* cpu, uint32_t instr);
+extern void exec_csrrci(cpu_t* cpu, uint32_t instr);
+extern void exec_ecall(cpu_t* cpu, uint32_t instr);
+extern void exec_ebreak(cpu_t* cpu, uint32_t instr);
+extern void exec_sret(cpu_t* cpu, uint32_t instr);
+extern void exec_mret(cpu_t* cpu, uint32_t instr);
+extern void exec_wfi(cpu_t* cpu, uint32_t instr);
+extern void exec_sfence_vma(cpu_t* cpu, uint32_t instr);
+extern void exec_lb(cpu_t* cpu, uint32_t instr);
+extern void exec_lh(cpu_t* cpu, uint32_t instr);
+extern void exec_lw(cpu_t* cpu, uint32_t instr);
+extern void exec_lbu(cpu_t* cpu, uint32_t instr);
+extern void exec_lhu(cpu_t* cpu, uint32_t instr);
+extern void exec_sb(cpu_t* cpu, uint32_t instr);
+extern void exec_sh(cpu_t* cpu, uint32_t instr);
+extern void exec_sw(cpu_t* cpu, uint32_t instr);
+extern void exec_jal(cpu_t* cpu, uint32_t instr);
+extern void exec_jalr(cpu_t* cpu, uint32_t instr);
+extern void exec_beq(cpu_t* cpu, uint32_t instr);
+extern void exec_bne(cpu_t* cpu, uint32_t instr);
+extern void exec_blt(cpu_t* cpu, uint32_t instr);
+extern void exec_bge(cpu_t* cpu, uint32_t instr);
+extern void exec_bltu(cpu_t* cpu, uint32_t instr);
+extern void exec_bgeu(cpu_t* cpu, uint32_t instr);
+extern void exec_addiw(cpu_t* cpu, uint32_t instr);
+extern void exec_slliw(cpu_t* cpu, uint32_t instr);
+extern void exec_srliw(cpu_t* cpu, uint32_t instr);
+extern void exec_sraiw(cpu_t* cpu, uint32_t instr);
+extern void exec_addw(cpu_t* cpu, uint32_t instr);
+extern void exec_subw(cpu_t* cpu, uint32_t instr);
+extern void exec_sllw(cpu_t* cpu, uint32_t instr);
+extern void exec_srlw(cpu_t* cpu, uint32_t instr);
+extern void exec_sraw(cpu_t* cpu, uint32_t instr);
+extern void exec_lwu(cpu_t* cpu, uint32_t instr);
+extern void exec_ld(cpu_t* cpu, uint32_t instr);
+extern void exec_sd(cpu_t* cpu, uint32_t instr);
+extern void exec_mul(cpu_t* cpu, uint32_t instr);
+extern void exec_mulh(cpu_t* cpu, uint32_t instr);
+extern void exec_mulhsu(cpu_t* cpu, uint32_t instr);
+extern void exec_mulhu(cpu_t* cpu, uint32_t instr);
+extern void exec_div(cpu_t* cpu, uint32_t instr);
+extern void exec_divu(cpu_t* cpu, uint32_t instr);
+extern void exec_rem(cpu_t* cpu, uint32_t instr);
+extern void exec_remu(cpu_t* cpu, uint32_t instr);
+extern void exec_mulw(cpu_t* cpu, uint32_t instr);
+extern void exec_divw(cpu_t* cpu, uint32_t instr);
+extern void exec_divuw(cpu_t* cpu, uint32_t instr);
+extern void exec_remw(cpu_t* cpu, uint32_t instr);
+extern void exec_remuw(cpu_t* cpu, uint32_t instr);
 
-instr_dispatch_table_t instr_dispatch_table[] = {
+instr_entry_t instr_table[] = {
     {0x0000007F, 0x00000037, exec_lui},
     {0x0000007F, 0x00000017, exec_auipc},
     {0x0000707F, 0x00000013, exec_addi},
@@ -158,3 +161,5 @@ instr_dispatch_table_t instr_dispatch_table[] = {
     {0xFE00707F, 0x0200603B, exec_remw},
     {0xFE00707F, 0x0200703B, exec_remuw},
 };
+
+const size_t instr_table_size = sizeof(instr_table) / sizeof(instr_entry_t);

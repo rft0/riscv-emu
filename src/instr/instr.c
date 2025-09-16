@@ -1,4 +1,9 @@
 #include "../cpu.h"
+#include "../helpers.h"
+
+#ifdef _MSC_VER
+#include <intrin.h>
+#endif
 
 #define _RD             extract32(instr, 11, 7)
 #define _RS1            extract32(instr, 19, 15)
@@ -10,7 +15,7 @@
 #define RS1             (cpu->x[_RS1])
 #define RS2             (cpu->x[_RS2])
 
-#define SET_RD(val)     (cpu->x[_RD] = (val))
+#define SET_RD(val) do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
 #define SET_PC(val)     (cpu->pc = (val))
 
 #define IMM_I           sext(extract32(instr, 31, 20), 12)
@@ -190,7 +195,8 @@ void exec_sw(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_jal(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    SET_RD(PC + 4);
+    SET_PC(PC + IMM_J);
 }
 
 void exec_jalr(cpu_t* cpu, uint32_t instr) {
@@ -275,53 +281,95 @@ void exec_sd(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_mul(cpu_t* cpu, uint32_t instr) {
-
+    SET_RD((int64_t)RS1 * (int64_t)RS2);
 }
 
 void exec_mulh(cpu_t* cpu, uint32_t instr) {
-
+    int64_t hi;
+    mul128((int64_t)RS1, (int64_t)RS2, &hi);
+    SET_RD(hi);
 }
 
 void exec_mulhsu(cpu_t* cpu, uint32_t instr) {
-
+    int64_t hi;
+    mulsu128((int64_t)RS1, RS2, &hi);
+    SET_RD(hi);
 }
 
 void exec_mulhu(cpu_t* cpu, uint32_t instr) {
-
+    uint64_t hi;
+    umul128(RS1, RS2, &hi);
+    SET_RD(hi);
 }
 
 void exec_div(cpu_t* cpu, uint32_t instr) {
-
+    int64_t dividend = (int64_t)RS1;
+    int64_t divisor = (int64_t)RS2;
+    
+    if (divisor == 0)
+        SET_RD(-1);
+    else if (dividend == INT64_MIN && divisor == -1)
+        SET_RD(dividend);
+    else
+        SET_RD(dividend / divisor);
 }
 
 void exec_divu(cpu_t* cpu, uint32_t instr) {
-
+    uint64_t dividend = RS1;
+    uint64_t divisor = RS2;
+    
+    if (divisor == 0)
+        SET_RD(UINT64_MAX);
+    else
+        SET_RD(dividend / divisor);
 }
 
 void exec_rem(cpu_t* cpu, uint32_t instr) {
-
+    int64_t dividend = (int64_t)RS1;
+    int64_t divisor = (int64_t)RS2;
+    
+    if (divisor == 0)
+        SET_RD(dividend);
+    else if (dividend == INT64_MIN && divisor == -1)
+        SET_RD(0);
+    else
+        SET_RD(dividend % divisor);
 }
 
 void exec_remu(cpu_t* cpu, uint32_t instr) {
-
+    uint64_t dividend = RS1;
+    uint64_t divisor = RS2;
+    
+    if (divisor == 0)
+        SET_RD(dividend);
+    else
+        SET_RD(dividend % divisor);
 }
 
 void exec_mulw(cpu_t* cpu, uint32_t instr) {
-
+    SET_RD((int64_t)(int32_t)((int32_t)RS1 * (int32_t)RS2));
 }
 
 void exec_divw(cpu_t* cpu, uint32_t instr) {
-
-}
-
-void exec_divuw(cpu_t* cpu, uint32_t instr) {
-
+    int32_t dividend = (int32_t)RS1;
+    int32_t divisor = (int32_t)RS2;
+    
+    if (divisor == 0)
+        SET_RD(-1);
+    else if (dividend == INT32_MIN && divisor == -1)
+        SET_RD((int64_t)dividend);
+    else
+        SET_RD((int64_t)(int32_t)(dividend / divisor));
 }
 
 void exec_remw(cpu_t* cpu, uint32_t instr) {
-
-}
-
-void exec_remuw(cpu_t* cpu, uint32_t instr) {
-
+    int32_t dividend = (int32_t)RS1;
+    int32_t divisor = (int32_t)RS2;
+    
+    if (divisor == 0)
+        SET_RD((int64_t)dividend);
+    else if (dividend == INT32_MIN && divisor == -1)
+        SET_RD(0);
+    else
+        SET_RD((int64_t)(int32_t)(dividend % divisor));
 }

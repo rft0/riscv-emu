@@ -56,14 +56,17 @@ if __name__ == "__main__":
                 instr_table.append((mask, match, name.replace(".", "_")))
 
     with open("table.c", "w") as f:
+        f.write('// --------------------------------------------\n')
         f.write(f'// This file is auto-generated. ({datetime.now().strftime("%Y-%m-%d %H")})\n\n')
+        f.write('// --------------------------------------------\n\n')
         f.write('#include "table.h"\n')
         f.write('#include "../cpu.h"\n\n')
         for _, _, name in instr_table:
             f.write(f'extern void exec_{name}(cpu_t* cpu, uint32_t instr);\n')
 
-        f.write('\ninstr_dispatch_table_t instr_dispatch_table[] = {\n')
+        f.write('\ninstr_entry_t instr_table[] = {\n')
         for mask, match, name in instr_table:
             f.write(f'    {{0x{mask:08X}, 0x{match:08X}, exec_{name}}},\n')
 
-        f.write('};\n')
+        f.write('};\n\n')
+        f.write('const size_t instr_table_size = sizeof(instr_table) / sizeof(instr_entry_t);\n')
