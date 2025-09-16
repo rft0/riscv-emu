@@ -1,0 +1,2472 @@
+
+mt-matmul.riscv:     file format elf64-littleriscv
+
+
+Disassembly of section .text.init:
+
+0000000080000000 <_start>:
+    80000000:	4081                	li	ra,0
+    80000002:	4101                	li	sp,0
+    80000004:	4181                	li	gp,0
+    80000006:	4201                	li	tp,0
+    80000008:	4281                	li	t0,0
+    8000000a:	4301                	li	t1,0
+    8000000c:	4381                	li	t2,0
+    8000000e:	4401                	li	s0,0
+    80000010:	4481                	li	s1,0
+    80000012:	4501                	li	a0,0
+    80000014:	4581                	li	a1,0
+    80000016:	4601                	li	a2,0
+    80000018:	4681                	li	a3,0
+    8000001a:	4701                	li	a4,0
+    8000001c:	4781                	li	a5,0
+    8000001e:	4801                	li	a6,0
+    80000020:	4881                	li	a7,0
+    80000022:	4901                	li	s2,0
+    80000024:	4981                	li	s3,0
+    80000026:	4a01                	li	s4,0
+    80000028:	4a81                	li	s5,0
+    8000002a:	4b01                	li	s6,0
+    8000002c:	4b81                	li	s7,0
+    8000002e:	4c01                	li	s8,0
+    80000030:	4c81                	li	s9,0
+    80000032:	4d01                	li	s10,0
+    80000034:	4d81                	li	s11,0
+    80000036:	4e01                	li	t3,0
+    80000038:	4e81                	li	t4,0
+    8000003a:	4f01                	li	t5,0
+    8000003c:	4f81                	li	t6,0
+    8000003e:	62f9                	lui	t0,0x1e
+    80000040:	6002829b          	addiw	t0,t0,1536 # 1e600 <buflen.1+0x1e580>
+    80000044:	3002a073          	csrs	mstatus,t0
+    80000048:	4285                	li	t0,1
+    8000004a:	02fe                	slli	t0,t0,0x1f
+    8000004c:	0002d863          	bgez	t0,8000005c <_start+0x5c>
+    80000050:	4505                	li	a0,1
+    80000052:	00001297          	auipc	t0,0x1
+    80000056:	faa2a723          	sw	a0,-82(t0) # 80001000 <tohost>
+    8000005a:	bfdd                	j	80000050 <_start+0x50>
+    8000005c:	00000297          	auipc	t0,0x0
+    80000060:	09028293          	addi	t0,t0,144 # 800000ec <_start+0xec>
+    80000064:	30529073          	csrw	mtvec,t0
+    80000068:	00301073          	fscsr	zero
+    8000006c:	f0000053          	fmv.w.x	ft0,zero
+    80000070:	f00000d3          	fmv.w.x	ft1,zero
+    80000074:	f0000153          	fmv.w.x	ft2,zero
+    80000078:	f00001d3          	fmv.w.x	ft3,zero
+    8000007c:	f0000253          	fmv.w.x	ft4,zero
+    80000080:	f00002d3          	fmv.w.x	ft5,zero
+    80000084:	f0000353          	fmv.w.x	ft6,zero
+    80000088:	f00003d3          	fmv.w.x	ft7,zero
+    8000008c:	f0000453          	fmv.w.x	fs0,zero
+    80000090:	f00004d3          	fmv.w.x	fs1,zero
+    80000094:	f0000553          	fmv.w.x	fa0,zero
+    80000098:	f00005d3          	fmv.w.x	fa1,zero
+    8000009c:	f0000653          	fmv.w.x	fa2,zero
+    800000a0:	f00006d3          	fmv.w.x	fa3,zero
+    800000a4:	f0000753          	fmv.w.x	fa4,zero
+    800000a8:	f00007d3          	fmv.w.x	fa5,zero
+    800000ac:	f0000853          	fmv.w.x	fa6,zero
+    800000b0:	f00008d3          	fmv.w.x	fa7,zero
+    800000b4:	f0000953          	fmv.w.x	fs2,zero
+    800000b8:	f00009d3          	fmv.w.x	fs3,zero
+    800000bc:	f0000a53          	fmv.w.x	fs4,zero
+    800000c0:	f0000ad3          	fmv.w.x	fs5,zero
+    800000c4:	f0000b53          	fmv.w.x	fs6,zero
+    800000c8:	f0000bd3          	fmv.w.x	fs7,zero
+    800000cc:	f0000c53          	fmv.w.x	fs8,zero
+    800000d0:	f0000cd3          	fmv.w.x	fs9,zero
+    800000d4:	f0000d53          	fmv.w.x	fs10,zero
+    800000d8:	f0000dd3          	fmv.w.x	fs11,zero
+    800000dc:	f0000e53          	fmv.w.x	ft8,zero
+    800000e0:	f0000ed3          	fmv.w.x	ft9,zero
+    800000e4:	f0000f53          	fmv.w.x	ft10,zero
+    800000e8:	f0000fd3          	fmv.w.x	ft11,zero
+    800000ec:	00000297          	auipc	t0,0x0
+    800000f0:	03c28293          	addi	t0,t0,60 # 80000128 <trap_entry>
+    800000f4:	30529073          	csrw	mtvec,t0
+    800000f8:	00004197          	auipc	gp,0x4
+    800000fc:	f4018193          	addi	gp,gp,-192 # 80004038 <__global_pointer$>
+    80000100:	00004217          	auipc	tp,0x4
+    80000104:	bbf20213          	addi	tp,tp,-1089 # 80003cbf <_end+0x3f>
+    80000108:	fc027213          	andi	tp,tp,-64
+    8000010c:	f1402573          	csrr	a0,mhartid
+    80000110:	4585                	li	a1,1
+    80000112:	00b57063          	bgeu	a0,a1,80000112 <_start+0x112>
+    80000116:	00150113          	addi	sp,a0,1
+    8000011a:	0146                	slli	sp,sp,0x11
+    8000011c:	9112                	add	sp,sp,tp
+    8000011e:	01151613          	slli	a2,a0,0x11
+    80000122:	9232                	add	tp,tp,a2
+    80000124:	76c0206f          	j	80002890 <_init>
+
+0000000080000128 <trap_entry>:
+    80000128:	716d                	addi	sp,sp,-272
+    8000012a:	e406                	sd	ra,8(sp)
+    8000012c:	e80a                	sd	sp,16(sp)
+    8000012e:	ec0e                	sd	gp,24(sp)
+    80000130:	f012                	sd	tp,32(sp)
+    80000132:	f416                	sd	t0,40(sp)
+    80000134:	f81a                	sd	t1,48(sp)
+    80000136:	fc1e                	sd	t2,56(sp)
+    80000138:	e0a2                	sd	s0,64(sp)
+    8000013a:	e4a6                	sd	s1,72(sp)
+    8000013c:	e8aa                	sd	a0,80(sp)
+    8000013e:	ecae                	sd	a1,88(sp)
+    80000140:	f0b2                	sd	a2,96(sp)
+    80000142:	f4b6                	sd	a3,104(sp)
+    80000144:	f8ba                	sd	a4,112(sp)
+    80000146:	fcbe                	sd	a5,120(sp)
+    80000148:	e142                	sd	a6,128(sp)
+    8000014a:	e546                	sd	a7,136(sp)
+    8000014c:	e94a                	sd	s2,144(sp)
+    8000014e:	ed4e                	sd	s3,152(sp)
+    80000150:	f152                	sd	s4,160(sp)
+    80000152:	f556                	sd	s5,168(sp)
+    80000154:	f95a                	sd	s6,176(sp)
+    80000156:	fd5e                	sd	s7,184(sp)
+    80000158:	e1e2                	sd	s8,192(sp)
+    8000015a:	e5e6                	sd	s9,200(sp)
+    8000015c:	e9ea                	sd	s10,208(sp)
+    8000015e:	edee                	sd	s11,216(sp)
+    80000160:	f1f2                	sd	t3,224(sp)
+    80000162:	f5f6                	sd	t4,232(sp)
+    80000164:	f9fa                	sd	t5,240(sp)
+    80000166:	fdfe                	sd	t6,248(sp)
+    80000168:	34202573          	csrr	a0,mcause
+    8000016c:	341025f3          	csrr	a1,mepc
+    80000170:	860a                	mv	a2,sp
+    80000172:	4fc020ef          	jal	8000266e <handle_trap>
+    80000176:	34151073          	csrw	mepc,a0
+    8000017a:	6289                	lui	t0,0x2
+    8000017c:	8002829b          	addiw	t0,t0,-2048 # 1800 <buflen.1+0x1780>
+    80000180:	3002a073          	csrs	mstatus,t0
+    80000184:	60a2                	ld	ra,8(sp)
+    80000186:	6142                	ld	sp,16(sp)
+    80000188:	61e2                	ld	gp,24(sp)
+    8000018a:	7202                	ld	tp,32(sp)
+    8000018c:	72a2                	ld	t0,40(sp)
+    8000018e:	7342                	ld	t1,48(sp)
+    80000190:	73e2                	ld	t2,56(sp)
+    80000192:	6406                	ld	s0,64(sp)
+    80000194:	64a6                	ld	s1,72(sp)
+    80000196:	6546                	ld	a0,80(sp)
+    80000198:	65e6                	ld	a1,88(sp)
+    8000019a:	7606                	ld	a2,96(sp)
+    8000019c:	76a6                	ld	a3,104(sp)
+    8000019e:	7746                	ld	a4,112(sp)
+    800001a0:	77e6                	ld	a5,120(sp)
+    800001a2:	680a                	ld	a6,128(sp)
+    800001a4:	68aa                	ld	a7,136(sp)
+    800001a6:	694a                	ld	s2,144(sp)
+    800001a8:	69ea                	ld	s3,152(sp)
+    800001aa:	7a0a                	ld	s4,160(sp)
+    800001ac:	7aaa                	ld	s5,168(sp)
+    800001ae:	7b4a                	ld	s6,176(sp)
+    800001b0:	7bea                	ld	s7,184(sp)
+    800001b2:	6c0e                	ld	s8,192(sp)
+    800001b4:	6cae                	ld	s9,200(sp)
+    800001b6:	6d4e                	ld	s10,208(sp)
+    800001b8:	6dee                	ld	s11,216(sp)
+    800001ba:	7e0e                	ld	t3,224(sp)
+    800001bc:	7eae                	ld	t4,232(sp)
+    800001be:	7f4e                	ld	t5,240(sp)
+    800001c0:	7fee                	ld	t6,248(sp)
+    800001c2:	6151                	addi	sp,sp,272
+    800001c4:	30200073          	mret
+    800001c8:	0001                	nop
+
+Disassembly of section .text:
+
+0000000080002000 <matmul>:
+    80002000:	1c060f63          	beqz	a2,800021de <matmul+0x1de>
+    80002004:	711d                	addi	sp,sp,-96
+    80002006:	f856                	sd	s5,48(sp)
+    80002008:	02b65ab3          	divu	s5,a2,a1
+    8000200c:	e866                	sd	s9,16(sp)
+    8000200e:	e46a                	sd	s10,8(sp)
+    80002010:	00261813          	slli	a6,a2,0x2
+    80002014:	e06e                	sd	s11,0(sp)
+    80002016:	e0ce                	sd	s3,64(sp)
+    80002018:	fc52                	sd	s4,56(sp)
+    8000201a:	f45a                	sd	s6,40(sp)
+    8000201c:	f05e                	sd	s7,32(sp)
+    8000201e:	ec62                	sd	s8,24(sp)
+    80002020:	eca2                	sd	s0,88(sp)
+    80002022:	e8a6                	sd	s1,80(sp)
+    80002024:	e4ca                	sd	s2,72(sp)
+    80002026:	8b32                	mv	s6,a2
+    80002028:	8bb6                	mv	s7,a3
+    8000202a:	8a3e                	mv	s4,a5
+    8000202c:	89ba                	mv	s3,a4
+    8000202e:	4c01                	li	s8,0
+    80002030:	02aa8cb3          	mul	s9,s5,a0
+    80002034:	001c8d13          	addi	s10,s9,1
+    80002038:	030d02b3          	mul	t0,s10,a6
+    8000203c:	9ae6                	add	s5,s5,s9
+    8000203e:	03960db3          	mul	s11,a2,s9
+    80002042:	00568d33          	add	s10,a3,t0
+    80002046:	82ea                	mv	t0,s10
+    80002048:	86ee                	mv	a3,s11
+    8000204a:	83e6                	mv	t2,s9
+    8000204c:	175cf663          	bgeu	s9,s5,800021b8 <matmul+0x1b8>
+    80002050:	00269f93          	slli	t6,a3,0x2
+    80002054:	01fb8733          	add	a4,s7,t6
+    80002058:	40e28633          	sub	a2,t0,a4
+    8000205c:	ffc60313          	addi	t1,a2,-4
+    80002060:	00235413          	srli	s0,t1,0x2
+    80002064:	00140493          	addi	s1,s0,1
+    80002068:	0074f893          	andi	a7,s1,7
+    8000206c:	87ce                	mv	a5,s3
+    8000206e:	4501                	li	a0,0
+    80002070:	0a088463          	beqz	a7,80002118 <matmul+0x118>
+    80002074:	4585                	li	a1,1
+    80002076:	08b88563          	beq	a7,a1,80002100 <matmul+0x100>
+    8000207a:	4909                	li	s2,2
+    8000207c:	07288963          	beq	a7,s2,800020ee <matmul+0xee>
+    80002080:	4e0d                	li	t3,3
+    80002082:	05c88e63          	beq	a7,t3,800020de <matmul+0xde>
+    80002086:	4e91                	li	t4,4
+    80002088:	05d88263          	beq	a7,t4,800020cc <matmul+0xcc>
+    8000208c:	4f15                	li	t5,5
+    8000208e:	03e88663          	beq	a7,t5,800020ba <matmul+0xba>
+    80002092:	4619                	li	a2,6
+    80002094:	00c88b63          	beq	a7,a2,800020aa <matmul+0xaa>
+    80002098:	00072303          	lw	t1,0(a4)
+    8000209c:	0009a503          	lw	a0,0(s3)
+    800020a0:	0711                	addi	a4,a4,4
+    800020a2:	010987b3          	add	a5,s3,a6
+    800020a6:	0265053b          	mulw	a0,a0,t1
+    800020aa:	4300                	lw	s0,0(a4)
+    800020ac:	4384                	lw	s1,0(a5)
+    800020ae:	0711                	addi	a4,a4,4
+    800020b0:	97c2                	add	a5,a5,a6
+    800020b2:	028488bb          	mulw	a7,s1,s0
+    800020b6:	00a8853b          	addw	a0,a7,a0
+    800020ba:	430c                	lw	a1,0(a4)
+    800020bc:	0007a903          	lw	s2,0(a5)
+    800020c0:	0711                	addi	a4,a4,4
+    800020c2:	97c2                	add	a5,a5,a6
+    800020c4:	02b90e3b          	mulw	t3,s2,a1
+    800020c8:	00ae053b          	addw	a0,t3,a0
+    800020cc:	00072e83          	lw	t4,0(a4)
+    800020d0:	0007af03          	lw	t5,0(a5)
+    800020d4:	0711                	addi	a4,a4,4
+    800020d6:	97c2                	add	a5,a5,a6
+    800020d8:	03df063b          	mulw	a2,t5,t4
+    800020dc:	9d31                	addw	a0,a0,a2
+    800020de:	00072303          	lw	t1,0(a4)
+    800020e2:	4380                	lw	s0,0(a5)
+    800020e4:	0711                	addi	a4,a4,4
+    800020e6:	97c2                	add	a5,a5,a6
+    800020e8:	026404bb          	mulw	s1,s0,t1
+    800020ec:	9d25                	addw	a0,a0,s1
+    800020ee:	00072883          	lw	a7,0(a4)
+    800020f2:	438c                	lw	a1,0(a5)
+    800020f4:	0711                	addi	a4,a4,4
+    800020f6:	97c2                	add	a5,a5,a6
+    800020f8:	0315893b          	mulw	s2,a1,a7
+    800020fc:	00a9053b          	addw	a0,s2,a0
+    80002100:	00072e03          	lw	t3,0(a4)
+    80002104:	0007ae83          	lw	t4,0(a5)
+    80002108:	0711                	addi	a4,a4,4
+    8000210a:	97c2                	add	a5,a5,a6
+    8000210c:	03ce8f3b          	mulw	t5,t4,t3
+    80002110:	00af053b          	addw	a0,t5,a0
+    80002114:	08e28a63          	beq	t0,a4,800021a8 <matmul+0x1a8>
+    80002118:	01078433          	add	s0,a5,a6
+    8000211c:	00072303          	lw	t1,0(a4)
+    80002120:	4390                	lw	a2,0(a5)
+    80002122:	010404b3          	add	s1,s0,a6
+    80002126:	00042f03          	lw	t5,0(s0)
+    8000212a:	4340                	lw	s0,4(a4)
+    8000212c:	470c                	lw	a1,8(a4)
+    8000212e:	0004ae83          	lw	t4,0(s1)
+    80002132:	0266063b          	mulw	a2,a2,t1
+    80002136:	010488b3          	add	a7,s1,a6
+    8000213a:	00c72e03          	lw	t3,12(a4)
+    8000213e:	010887b3          	add	a5,a7,a6
+    80002142:	0008a903          	lw	s2,0(a7)
+    80002146:	4b04                	lw	s1,16(a4)
+    80002148:	0007a303          	lw	t1,0(a5)
+    8000214c:	97c2                	add	a5,a5,a6
+    8000214e:	0007a883          	lw	a7,0(a5)
+    80002152:	97c2                	add	a5,a5,a6
+    80002154:	028f0f3b          	mulw	t5,t5,s0
+    80002158:	9e29                	addw	a2,a2,a0
+    8000215a:	4b40                	lw	s0,20(a4)
+    8000215c:	4388                	lw	a0,0(a5)
+    8000215e:	97c2                	add	a5,a5,a6
+    80002160:	02070713          	addi	a4,a4,32
+    80002164:	02be8ebb          	mulw	t4,t4,a1
+    80002168:	00cf0f3b          	addw	t5,t5,a2
+    8000216c:	ff872603          	lw	a2,-8(a4)
+    80002170:	438c                	lw	a1,0(a5)
+    80002172:	97c2                	add	a5,a5,a6
+    80002174:	03c9093b          	mulw	s2,s2,t3
+    80002178:	01ee8e3b          	addw	t3,t4,t5
+    8000217c:	ffc72e83          	lw	t4,-4(a4)
+    80002180:	0293033b          	mulw	t1,t1,s1
+    80002184:	01c904bb          	addw	s1,s2,t3
+    80002188:	028888bb          	mulw	a7,a7,s0
+    8000218c:	0093043b          	addw	s0,t1,s1
+    80002190:	02c5053b          	mulw	a0,a0,a2
+    80002194:	00888f3b          	addw	t5,a7,s0
+    80002198:	03d585bb          	mulw	a1,a1,t4
+    8000219c:	01e5063b          	addw	a2,a0,t5
+    800021a0:	00c5853b          	addw	a0,a1,a2
+    800021a4:	f6e29ae3          	bne	t0,a4,80002118 <matmul+0x118>
+    800021a8:	9fd2                	add	t6,t6,s4
+    800021aa:	00afa023          	sw	a0,0(t6)
+    800021ae:	0385                	addi	t2,t2,1
+    800021b0:	96da                	add	a3,a3,s6
+    800021b2:	92c2                	add	t0,t0,a6
+    800021b4:	e9539ee3          	bne	t2,s5,80002050 <matmul+0x50>
+    800021b8:	0c05                	addi	s8,s8,1
+    800021ba:	0a11                	addi	s4,s4,4
+    800021bc:	0991                	addi	s3,s3,4
+    800021be:	e98b14e3          	bne	s6,s8,80002046 <matmul+0x46>
+    800021c2:	6466                	ld	s0,88(sp)
+    800021c4:	64c6                	ld	s1,80(sp)
+    800021c6:	6926                	ld	s2,72(sp)
+    800021c8:	6986                	ld	s3,64(sp)
+    800021ca:	7a62                	ld	s4,56(sp)
+    800021cc:	7ac2                	ld	s5,48(sp)
+    800021ce:	7b22                	ld	s6,40(sp)
+    800021d0:	7b82                	ld	s7,32(sp)
+    800021d2:	6c62                	ld	s8,24(sp)
+    800021d4:	6cc2                	ld	s9,16(sp)
+    800021d6:	6d22                	ld	s10,8(sp)
+    800021d8:	6d82                	ld	s11,0(sp)
+    800021da:	6125                	addi	sp,sp,96
+    800021dc:	8082                	ret
+    800021de:	8082                	ret
+
+00000000800021e0 <barrier>:
+    800021e0:	0330000f          	fence	rw,rw
+    800021e4:	00022683          	lw	a3,0(tp) # 0 <threadsense.3>
+    800021e8:	00001717          	auipc	a4,0x1
+    800021ec:	65470713          	addi	a4,a4,1620 # 8000383c <count.1>
+    800021f0:	4605                	li	a2,1
+    800021f2:	0016b693          	seqz	a3,a3
+    800021f6:	00d22023          	sw	a3,0(tp) # 0 <threadsense.3>
+    800021fa:	06c726af          	amoadd.w.aqrl	a3,a2,(a4)
+    800021fe:	2681                	sext.w	a3,a3
+    80002200:	357d                	addiw	a0,a0,-1
+    80002202:	00022703          	lw	a4,0(tp) # 0 <threadsense.3>
+    80002206:	00d50b63          	beq	a0,a3,8000221c <barrier+0x3c>
+    8000220a:	00001797          	auipc	a5,0x1
+    8000220e:	62e7a783          	lw	a5,1582(a5) # 80003838 <sense.0>
+    80002212:	fee79ce3          	bne	a5,a4,8000220a <barrier+0x2a>
+    80002216:	0330000f          	fence	rw,rw
+    8000221a:	8082                	ret
+    8000221c:	00001797          	auipc	a5,0x1
+    80002220:	6207a023          	sw	zero,1568(a5) # 8000383c <count.1>
+    80002224:	00001797          	auipc	a5,0x1
+    80002228:	60e7aa23          	sw	a4,1556(a5) # 80003838 <sense.0>
+    8000222c:	b7ed                	j	80002216 <barrier+0x36>
+
+000000008000222e <thread_entry>:
+    8000222e:	7179                	addi	sp,sp,-48
+    80002230:	f022                	sd	s0,32(sp)
+    80002232:	ec26                	sd	s1,24(sp)
+    80002234:	f406                	sd	ra,40(sp)
+    80002236:	e84a                	sd	s2,16(sp)
+    80002238:	e44e                	sd	s3,8(sp)
+    8000223a:	842a                	mv	s0,a0
+    8000223c:	84ae                	mv	s1,a1
+    8000223e:	b00029f3          	csrr	s3,mcycle
+    80002242:	b0202973          	csrr	s2,minstret
+    80002246:	00001797          	auipc	a5,0x1
+    8000224a:	5fa78793          	addi	a5,a5,1530 # 80003840 <results_data.2>
+    8000224e:	00001717          	auipc	a4,0x1
+    80002252:	9ea70713          	addi	a4,a4,-1558 # 80002c38 <input2_data>
+    80002256:	00001697          	auipc	a3,0x1
+    8000225a:	de268693          	addi	a3,a3,-542 # 80003038 <input1_data>
+    8000225e:	4641                	li	a2,16
+    80002260:	da1ff0ef          	jal	80002000 <matmul>
+    80002264:	8526                	mv	a0,s1
+    80002266:	f7bff0ef          	jal	800021e0 <barrier>
+    8000226a:	b0002673          	csrr	a2,mcycle
+    8000226e:	b02027f3          	csrr	a5,minstret
+    80002272:	cc1d                	beqz	s0,800022b0 <thread_entry+0x82>
+    80002274:	00001797          	auipc	a5,0x1
+    80002278:	5cc78793          	addi	a5,a5,1484 # 80003840 <results_data.2>
+    8000227c:	00001697          	auipc	a3,0x1
+    80002280:	1bc68693          	addi	a3,a3,444 # 80003438 <verify_data>
+    80002284:	4501                	li	a0,0
+    80002286:	10000813          	li	a6,256
+    8000228a:	4390                	lw	a2,0(a5)
+    8000228c:	428c                	lw	a1,0(a3)
+    8000228e:	43d8                	lw	a4,4(a5)
+    80002290:	2701                	sext.w	a4,a4
+    80002292:	00c59d63          	bne	a1,a2,800022ac <thread_entry+0x7e>
+    80002296:	42d0                	lw	a2,4(a3)
+    80002298:	2509                	addiw	a0,a0,2
+    8000229a:	00e61763          	bne	a2,a4,800022a8 <thread_entry+0x7a>
+    8000229e:	07a1                	addi	a5,a5,8
+    800022a0:	06a1                	addi	a3,a3,8
+    800022a2:	ff0514e3          	bne	a0,a6,8000228a <thread_entry+0x5c>
+    800022a6:	4501                	li	a0,0
+    800022a8:	3d6000ef          	jal	8000267e <exit>
+    800022ac:	2505                	addiw	a0,a0,1
+    800022ae:	bfed                	j	800022a8 <thread_entry+0x7a>
+    800022b0:	41360633          	sub	a2,a2,s3
+    800022b4:	4729                	li	a4,10
+    800022b6:	02e608b3          	mul	a7,a2,a4
+    800022ba:	412787b3          	sub	a5,a5,s2
+    800022be:	00c65693          	srli	a3,a2,0xc
+    800022c2:	00000597          	auipc	a1,0x0
+    800022c6:	74e58593          	addi	a1,a1,1870 # 80002a10 <main+0x1e>
+    800022ca:	00000517          	auipc	a0,0x0
+    800022ce:	79650513          	addi	a0,a0,1942 # 80002a60 <main+0x6e>
+    800022d2:	02f8d833          	divu	a6,a7,a5
+    800022d6:	00c8d893          	srli	a7,a7,0xc
+    800022da:	02e87833          	remu	a6,a6,a4
+    800022de:	02f657b3          	divu	a5,a2,a5
+    800022e2:	02e8f733          	remu	a4,a7,a4
+    800022e6:	444000ef          	jal	8000272a <printf>
+    800022ea:	b769                	j	80002274 <thread_entry+0x46>
+
+00000000800022ec <vprintfmt>:
+    800022ec:	710d                	addi	sp,sp,-352
+    800022ee:	eaa2                	sd	s0,336(sp)
+    800022f0:	e6a6                	sd	s1,328(sp)
+    800022f2:	e2ca                	sd	s2,320(sp)
+    800022f4:	fa52                	sd	s4,304(sp)
+    800022f6:	f656                	sd	s5,296(sp)
+    800022f8:	f25a                	sd	s6,288(sp)
+    800022fa:	ee5e                	sd	s7,280(sp)
+    800022fc:	ee86                	sd	ra,344(sp)
+    800022fe:	fe4e                	sd	s3,312(sp)
+    80002300:	ea62                	sd	s8,272(sp)
+    80002302:	e666                	sd	s9,264(sp)
+    80002304:	e26a                	sd	s10,256(sp)
+    80002306:	84aa                	mv	s1,a0
+    80002308:	8432                	mv	s0,a2
+    8000230a:	8bb6                	mv	s7,a3
+    8000230c:	892e                	mv	s2,a1
+    8000230e:	02500a13          	li	s4,37
+    80002312:	05500b13          	li	s6,85
+    80002316:	00000a97          	auipc	s5,0x0
+    8000231a:	7c6a8a93          	addi	s5,s5,1990 # 80002adc <main+0xea>
+    8000231e:	a029                	j	80002328 <vprintfmt+0x3c>
+    80002320:	cd1d                	beqz	a0,8000235e <vprintfmt+0x72>
+    80002322:	85ca                	mv	a1,s2
+    80002324:	0405                	addi	s0,s0,1
+    80002326:	9482                	jalr	s1
+    80002328:	00044503          	lbu	a0,0(s0)
+    8000232c:	ff451ae3          	bne	a0,s4,80002320 <vprintfmt+0x34>
+    80002330:	00144683          	lbu	a3,1(s0)
+    80002334:	00140c13          	addi	s8,s0,1
+    80002338:	59fd                	li	s3,-1
+    8000233a:	8762                	mv	a4,s8
+    8000233c:	8cce                	mv	s9,s3
+    8000233e:	02000d13          	li	s10,32
+    80002342:	4601                	li	a2,0
+    80002344:	fdd6879b          	addiw	a5,a3,-35
+    80002348:	0ff7f793          	zext.b	a5,a5
+    8000234c:	00170413          	addi	s0,a4,1
+    80002350:	04fb6163          	bltu	s6,a5,80002392 <vprintfmt+0xa6>
+    80002354:	078a                	slli	a5,a5,0x2
+    80002356:	97d6                	add	a5,a5,s5
+    80002358:	439c                	lw	a5,0(a5)
+    8000235a:	97d6                	add	a5,a5,s5
+    8000235c:	8782                	jr	a5
+    8000235e:	60f6                	ld	ra,344(sp)
+    80002360:	6456                	ld	s0,336(sp)
+    80002362:	64b6                	ld	s1,328(sp)
+    80002364:	6916                	ld	s2,320(sp)
+    80002366:	79f2                	ld	s3,312(sp)
+    80002368:	7a52                	ld	s4,304(sp)
+    8000236a:	7ab2                	ld	s5,296(sp)
+    8000236c:	7b12                	ld	s6,288(sp)
+    8000236e:	6bf2                	ld	s7,280(sp)
+    80002370:	6c52                	ld	s8,272(sp)
+    80002372:	6cb2                	ld	s9,264(sp)
+    80002374:	6d12                	ld	s10,256(sp)
+    80002376:	6135                	addi	sp,sp,352
+    80002378:	8082                	ret
+    8000237a:	8d36                	mv	s10,a3
+    8000237c:	00174683          	lbu	a3,1(a4)
+    80002380:	8722                	mv	a4,s0
+    80002382:	00170413          	addi	s0,a4,1
+    80002386:	fdd6879b          	addiw	a5,a3,-35
+    8000238a:	0ff7f793          	zext.b	a5,a5
+    8000238e:	fcfb73e3          	bgeu	s6,a5,80002354 <vprintfmt+0x68>
+    80002392:	85ca                	mv	a1,s2
+    80002394:	02500513          	li	a0,37
+    80002398:	9482                	jalr	s1
+    8000239a:	8462                	mv	s0,s8
+    8000239c:	b771                	j	80002328 <vprintfmt+0x3c>
+    8000239e:	fd06899b          	addiw	s3,a3,-48
+    800023a2:	00174683          	lbu	a3,1(a4)
+    800023a6:	4825                	li	a6,9
+    800023a8:	fd06879b          	addiw	a5,a3,-48
+    800023ac:	1ef86a63          	bltu	a6,a5,800025a0 <vprintfmt+0x2b4>
+    800023b0:	0006859b          	sext.w	a1,a3
+    800023b4:	8722                	mv	a4,s0
+    800023b6:	0029979b          	slliw	a5,s3,0x2
+    800023ba:	00174683          	lbu	a3,1(a4)
+    800023be:	013787bb          	addw	a5,a5,s3
+    800023c2:	0017979b          	slliw	a5,a5,0x1
+    800023c6:	9fad                	addw	a5,a5,a1
+    800023c8:	fd06851b          	addiw	a0,a3,-48
+    800023cc:	0705                	addi	a4,a4,1
+    800023ce:	fd07899b          	addiw	s3,a5,-48
+    800023d2:	0006859b          	sext.w	a1,a3
+    800023d6:	fea870e3          	bgeu	a6,a0,800023b6 <vprintfmt+0xca>
+    800023da:	f60cd5e3          	bgez	s9,80002344 <vprintfmt+0x58>
+    800023de:	8cce                	mv	s9,s3
+    800023e0:	59fd                	li	s3,-1
+    800023e2:	b78d                	j	80002344 <vprintfmt+0x58>
+    800023e4:	00174683          	lbu	a3,1(a4)
+    800023e8:	8722                	mv	a4,s0
+    800023ea:	bfa9                	j	80002344 <vprintfmt+0x58>
+    800023ec:	85ca                	mv	a1,s2
+    800023ee:	02500513          	li	a0,37
+    800023f2:	9482                	jalr	s1
+    800023f4:	bf15                	j	80002328 <vprintfmt+0x3c>
+    800023f6:	00174683          	lbu	a3,1(a4)
+    800023fa:	000ba983          	lw	s3,0(s7)
+    800023fe:	8722                	mv	a4,s0
+    80002400:	0ba1                	addi	s7,s7,8
+    80002402:	bfe1                	j	800023da <vprintfmt+0xee>
+    80002404:	85ca                	mv	a1,s2
+    80002406:	03000513          	li	a0,48
+    8000240a:	9482                	jalr	s1
+    8000240c:	85ca                	mv	a1,s2
+    8000240e:	07800513          	li	a0,120
+    80002412:	9482                	jalr	s1
+    80002414:	008b8793          	addi	a5,s7,8
+    80002418:	46c1                	li	a3,16
+    8000241a:	000bb703          	ld	a4,0(s7)
+    8000241e:	8bbe                	mv	s7,a5
+    80002420:	02d775b3          	remu	a1,a4,a3
+    80002424:	0050                	addi	a2,sp,4
+    80002426:	4785                	li	a5,1
+    80002428:	c02e                	sw	a1,0(sp)
+    8000242a:	10d76463          	bltu	a4,a3,80002532 <vprintfmt+0x246>
+    8000242e:	02d75733          	divu	a4,a4,a3
+    80002432:	8c3e                	mv	s8,a5
+    80002434:	0611                	addi	a2,a2,4
+    80002436:	2785                	addiw	a5,a5,1
+    80002438:	02d775b3          	remu	a1,a4,a3
+    8000243c:	feb62e23          	sw	a1,-4(a2)
+    80002440:	fed777e3          	bgeu	a4,a3,8000242e <vprintfmt+0x142>
+    80002444:	0197dc63          	bge	a5,s9,8000245c <vprintfmt+0x170>
+    80002448:	2d01                	sext.w	s10,s10
+    8000244a:	3cfd                	addiw	s9,s9,-1
+    8000244c:	fff7899b          	addiw	s3,a5,-1
+    80002450:	85ca                	mv	a1,s2
+    80002452:	856a                	mv	a0,s10
+    80002454:	3cfd                	addiw	s9,s9,-1
+    80002456:	9482                	jalr	s1
+    80002458:	ff3c9ce3          	bne	s9,s3,80002450 <vprintfmt+0x164>
+    8000245c:	0c0a                	slli	s8,s8,0x2
+    8000245e:	018109b3          	add	s3,sp,s8
+    80002462:	ffc10c93          	addi	s9,sp,-4
+    80002466:	4c25                	li	s8,9
+    80002468:	0009a783          	lw	a5,0(s3)
+    8000246c:	03000513          	li	a0,48
+    80002470:	00fc7463          	bgeu	s8,a5,80002478 <vprintfmt+0x18c>
+    80002474:	05700513          	li	a0,87
+    80002478:	9d3d                	addw	a0,a0,a5
+    8000247a:	85ca                	mv	a1,s2
+    8000247c:	19f1                	addi	s3,s3,-4
+    8000247e:	9482                	jalr	s1
+    80002480:	ff9994e3          	bne	s3,s9,80002468 <vprintfmt+0x17c>
+    80002484:	b555                	j	80002328 <vprintfmt+0x3c>
+    80002486:	4785                	li	a5,1
+    80002488:	008b8c13          	addi	s8,s7,8
+    8000248c:	00c7c363          	blt	a5,a2,80002492 <vprintfmt+0x1a6>
+    80002490:	c25d                	beqz	a2,80002536 <vprintfmt+0x24a>
+    80002492:	000bb983          	ld	s3,0(s7)
+    80002496:	0a09c763          	bltz	s3,80002544 <vprintfmt+0x258>
+    8000249a:	874e                	mv	a4,s3
+    8000249c:	8be2                	mv	s7,s8
+    8000249e:	46a9                	li	a3,10
+    800024a0:	b741                	j	80002420 <vprintfmt+0x134>
+    800024a2:	00174683          	lbu	a3,1(a4)
+    800024a6:	2605                	addiw	a2,a2,1
+    800024a8:	8722                	mv	a4,s0
+    800024aa:	bd69                	j	80002344 <vprintfmt+0x58>
+    800024ac:	46c1                	li	a3,16
+    800024ae:	4705                	li	a4,1
+    800024b0:	008b8793          	addi	a5,s7,8
+    800024b4:	f6c743e3          	blt	a4,a2,8000241a <vprintfmt+0x12e>
+    800024b8:	f22d                	bnez	a2,8000241a <vprintfmt+0x12e>
+    800024ba:	000be703          	lwu	a4,0(s7)
+    800024be:	8bbe                	mv	s7,a5
+    800024c0:	b785                	j	80002420 <vprintfmt+0x134>
+    800024c2:	000bbc03          	ld	s8,0(s7)
+    800024c6:	2d01                	sext.w	s10,s10
+    800024c8:	fd3d0793          	addi	a5,s10,-45
+    800024cc:	00f037b3          	snez	a5,a5
+    800024d0:	01902733          	sgtz	a4,s9
+    800024d4:	8f7d                	and	a4,a4,a5
+    800024d6:	0ba1                	addi	s7,s7,8
+    800024d8:	060c0f63          	beqz	s8,80002556 <vprintfmt+0x26a>
+    800024dc:	e741                	bnez	a4,80002564 <vprintfmt+0x278>
+    800024de:	000c4503          	lbu	a0,0(s8)
+    800024e2:	cd11                	beqz	a0,800024fe <vprintfmt+0x212>
+    800024e4:	5d7d                	li	s10,-1
+    800024e6:	0009c563          	bltz	s3,800024f0 <vprintfmt+0x204>
+    800024ea:	39fd                	addiw	s3,s3,-1
+    800024ec:	01a98963          	beq	s3,s10,800024fe <vprintfmt+0x212>
+    800024f0:	85ca                	mv	a1,s2
+    800024f2:	9482                	jalr	s1
+    800024f4:	001c4503          	lbu	a0,1(s8)
+    800024f8:	0c05                	addi	s8,s8,1
+    800024fa:	3cfd                	addiw	s9,s9,-1
+    800024fc:	f56d                	bnez	a0,800024e6 <vprintfmt+0x1fa>
+    800024fe:	e39055e3          	blez	s9,80002328 <vprintfmt+0x3c>
+    80002502:	85ca                	mv	a1,s2
+    80002504:	02000513          	li	a0,32
+    80002508:	3cfd                	addiw	s9,s9,-1
+    8000250a:	9482                	jalr	s1
+    8000250c:	fe0c9be3          	bnez	s9,80002502 <vprintfmt+0x216>
+    80002510:	bd21                	j	80002328 <vprintfmt+0x3c>
+    80002512:	87e6                	mv	a5,s9
+    80002514:	000cd363          	bgez	s9,8000251a <vprintfmt+0x22e>
+    80002518:	4781                	li	a5,0
+    8000251a:	00174683          	lbu	a3,1(a4)
+    8000251e:	00078c9b          	sext.w	s9,a5
+    80002522:	8722                	mv	a4,s0
+    80002524:	b505                	j	80002344 <vprintfmt+0x58>
+    80002526:	000ba503          	lw	a0,0(s7)
+    8000252a:	85ca                	mv	a1,s2
+    8000252c:	0ba1                	addi	s7,s7,8
+    8000252e:	9482                	jalr	s1
+    80002530:	bbe5                	j	80002328 <vprintfmt+0x3c>
+    80002532:	4c01                	li	s8,0
+    80002534:	bf01                	j	80002444 <vprintfmt+0x158>
+    80002536:	000ba983          	lw	s3,0(s7)
+    8000253a:	bfb1                	j	80002496 <vprintfmt+0x1aa>
+    8000253c:	46a9                	li	a3,10
+    8000253e:	bf85                	j	800024ae <vprintfmt+0x1c2>
+    80002540:	46a1                	li	a3,8
+    80002542:	b7b5                	j	800024ae <vprintfmt+0x1c2>
+    80002544:	85ca                	mv	a1,s2
+    80002546:	02d00513          	li	a0,45
+    8000254a:	9482                	jalr	s1
+    8000254c:	41300733          	neg	a4,s3
+    80002550:	8be2                	mv	s7,s8
+    80002552:	46a9                	li	a3,10
+    80002554:	b5f1                	j	80002420 <vprintfmt+0x134>
+    80002556:	00000c17          	auipc	s8,0x0
+    8000255a:	542c0c13          	addi	s8,s8,1346 # 80002a98 <main+0xa6>
+    8000255e:	02800513          	li	a0,40
+    80002562:	d349                	beqz	a4,800024e4 <vprintfmt+0x1f8>
+    80002564:	87e2                	mv	a5,s8
+    80002566:	013c06b3          	add	a3,s8,s3
+    8000256a:	00099663          	bnez	s3,80002576 <vprintfmt+0x28a>
+    8000256e:	a829                	j	80002588 <vprintfmt+0x29c>
+    80002570:	0785                	addi	a5,a5,1
+    80002572:	00d78563          	beq	a5,a3,8000257c <vprintfmt+0x290>
+    80002576:	0007c703          	lbu	a4,0(a5)
+    8000257a:	fb7d                	bnez	a4,80002570 <vprintfmt+0x284>
+    8000257c:	418787b3          	sub	a5,a5,s8
+    80002580:	40fc8cbb          	subw	s9,s9,a5
+    80002584:	01905863          	blez	s9,80002594 <vprintfmt+0x2a8>
+    80002588:	85ca                	mv	a1,s2
+    8000258a:	856a                	mv	a0,s10
+    8000258c:	3cfd                	addiw	s9,s9,-1
+    8000258e:	9482                	jalr	s1
+    80002590:	fe0c9ce3          	bnez	s9,80002588 <vprintfmt+0x29c>
+    80002594:	000c4503          	lbu	a0,0(s8)
+    80002598:	d80508e3          	beqz	a0,80002328 <vprintfmt+0x3c>
+    8000259c:	5d7d                	li	s10,-1
+    8000259e:	b7a1                	j	800024e6 <vprintfmt+0x1fa>
+    800025a0:	8722                	mv	a4,s0
+    800025a2:	bd25                	j	800023da <vprintfmt+0xee>
+
+00000000800025a4 <sprintf_putch.0>:
+    800025a4:	619c                	ld	a5,0(a1)
+    800025a6:	00a78023          	sb	a0,0(a5)
+    800025aa:	619c                	ld	a5,0(a1)
+    800025ac:	0785                	addi	a5,a5,1
+    800025ae:	e19c                	sd	a5,0(a1)
+    800025b0:	8082                	ret
+
+00000000800025b2 <putchar>:
+    800025b2:	08022783          	lw	a5,128(tp) # 80 <buflen.1>
+    800025b6:	04020713          	addi	a4,tp,64 # 40 <buf.2>
+    800025ba:	7159                	addi	sp,sp,-112
+    800025bc:	973e                	add	a4,a4,a5
+    800025be:	2785                	addiw	a5,a5,1
+    800025c0:	00a70023          	sb	a0,0(a4)
+    800025c4:	08f22023          	sw	a5,128(tp) # 80 <buflen.1>
+    800025c8:	03f10713          	addi	a4,sp,63
+    800025cc:	fc078593          	addi	a1,a5,-64
+    800025d0:	fc077713          	andi	a4,a4,-64
+    800025d4:	c591                	beqz	a1,800025e0 <putchar+0x2e>
+    800025d6:	1559                	addi	a0,a0,-10
+    800025d8:	c501                	beqz	a0,800025e0 <putchar+0x2e>
+    800025da:	4501                	li	a0,0
+    800025dc:	6165                	addi	sp,sp,112
+    800025de:	8082                	ret
+    800025e0:	04000593          	li	a1,64
+    800025e4:	e30c                	sd	a1,0(a4)
+    800025e6:	4585                	li	a1,1
+    800025e8:	e70c                	sd	a1,8(a4)
+    800025ea:	04020693          	addi	a3,tp,64 # 40 <buf.2>
+    800025ee:	eb14                	sd	a3,16(a4)
+    800025f0:	ef1c                	sd	a5,24(a4)
+    800025f2:	0330000f          	fence	rw,rw
+    800025f6:	fffff697          	auipc	a3,0xfffff
+    800025fa:	a4a68693          	addi	a3,a3,-1462 # 80001040 <fromhost>
+    800025fe:	fffff797          	auipc	a5,0xfffff
+    80002602:	a0e7b123          	sd	a4,-1534(a5) # 80001000 <tohost>
+    80002606:	629c                	ld	a5,0(a3)
+    80002608:	dffd                	beqz	a5,80002606 <putchar+0x54>
+    8000260a:	fffff797          	auipc	a5,0xfffff
+    8000260e:	a207bb23          	sd	zero,-1482(a5) # 80001040 <fromhost>
+    80002612:	0330000f          	fence	rw,rw
+    80002616:	08022023          	sw	zero,128(tp) # 80 <buflen.1>
+    8000261a:	631c                	ld	a5,0(a4)
+    8000261c:	4501                	li	a0,0
+    8000261e:	6165                	addi	sp,sp,112
+    80002620:	8082                	ret
+
+0000000080002622 <setStats>:
+    80002622:	b0002773          	csrr	a4,mcycle
+    80002626:	c0818793          	addi	a5,gp,-1016 # 80003c40 <counters>
+    8000262a:	c511                	beqz	a0,80002636 <setStats+0x14>
+    8000262c:	e398                	sd	a4,0(a5)
+    8000262e:	b0202773          	csrr	a4,minstret
+    80002632:	e798                	sd	a4,8(a5)
+    80002634:	8082                	ret
+    80002636:	6394                	ld	a3,0(a5)
+    80002638:	00000617          	auipc	a2,0x0
+    8000263c:	46860613          	addi	a2,a2,1128 # 80002aa0 <main+0xae>
+    80002640:	eb90                	sd	a2,16(a5)
+    80002642:	8f15                	sub	a4,a4,a3
+    80002644:	e398                	sd	a4,0(a5)
+    80002646:	b0202773          	csrr	a4,minstret
+    8000264a:	6794                	ld	a3,8(a5)
+    8000264c:	00000617          	auipc	a2,0x0
+    80002650:	45c60613          	addi	a2,a2,1116 # 80002aa8 <main+0xb6>
+    80002654:	ef90                	sd	a2,24(a5)
+    80002656:	8f15                	sub	a4,a4,a3
+    80002658:	e798                	sd	a4,8(a5)
+    8000265a:	8082                	ret
+
+000000008000265c <tohost_exit>:
+    8000265c:	00151793          	slli	a5,a0,0x1
+    80002660:	0017e793          	ori	a5,a5,1
+    80002664:	fffff717          	auipc	a4,0xfffff
+    80002668:	98f73e23          	sd	a5,-1636(a4) # 80001000 <tohost>
+    8000266c:	a001                	j	8000266c <tohost_exit+0x10>
+
+000000008000266e <handle_trap>:
+    8000266e:	6785                	lui	a5,0x1
+    80002670:	a7378793          	addi	a5,a5,-1421 # a73 <buflen.1+0x9f3>
+    80002674:	fffff717          	auipc	a4,0xfffff
+    80002678:	98f73623          	sd	a5,-1652(a4) # 80001000 <tohost>
+    8000267c:	a001                	j	8000267c <handle_trap+0xe>
+
+000000008000267e <exit>:
+    8000267e:	1141                	addi	sp,sp,-16
+    80002680:	e406                	sd	ra,8(sp)
+    80002682:	fdbff0ef          	jal	8000265c <tohost_exit>
+
+0000000080002686 <abort>:
+    80002686:	10d00793          	li	a5,269
+    8000268a:	fffff717          	auipc	a4,0xfffff
+    8000268e:	96f73b23          	sd	a5,-1674(a4) # 80001000 <tohost>
+    80002692:	a001                	j	80002692 <abort+0xc>
+
+0000000080002694 <printstr>:
+    80002694:	00054783          	lbu	a5,0(a0)
+    80002698:	7159                	addi	sp,sp,-112
+    8000269a:	03f10693          	addi	a3,sp,63
+    8000269e:	fc06f693          	andi	a3,a3,-64
+    800026a2:	c799                	beqz	a5,800026b0 <printstr+0x1c>
+    800026a4:	87aa                	mv	a5,a0
+    800026a6:	0017c703          	lbu	a4,1(a5)
+    800026aa:	0785                	addi	a5,a5,1
+    800026ac:	ff6d                	bnez	a4,800026a6 <printstr+0x12>
+    800026ae:	8f89                	sub	a5,a5,a0
+    800026b0:	04000713          	li	a4,64
+    800026b4:	e298                	sd	a4,0(a3)
+    800026b6:	4705                	li	a4,1
+    800026b8:	e698                	sd	a4,8(a3)
+    800026ba:	ea88                	sd	a0,16(a3)
+    800026bc:	ee9c                	sd	a5,24(a3)
+    800026be:	0330000f          	fence	rw,rw
+    800026c2:	fffff717          	auipc	a4,0xfffff
+    800026c6:	97e70713          	addi	a4,a4,-1666 # 80001040 <fromhost>
+    800026ca:	fffff797          	auipc	a5,0xfffff
+    800026ce:	92d7bb23          	sd	a3,-1738(a5) # 80001000 <tohost>
+    800026d2:	631c                	ld	a5,0(a4)
+    800026d4:	dffd                	beqz	a5,800026d2 <printstr+0x3e>
+    800026d6:	fffff797          	auipc	a5,0xfffff
+    800026da:	9607b523          	sd	zero,-1686(a5) # 80001040 <fromhost>
+    800026de:	0330000f          	fence	rw,rw
+    800026e2:	629c                	ld	a5,0(a3)
+    800026e4:	6165                	addi	sp,sp,112
+    800026e6:	8082                	ret
+    800026e8:	e111                	bnez	a0,800026ec <printstr+0x58>
+    800026ea:	8082                	ret
+    800026ec:	a001                	j	800026ec <printstr+0x58>
+
+00000000800026ee <printhex>:
+    800026ee:	7179                	addi	sp,sp,-48
+    800026f0:	86aa                	mv	a3,a0
+    800026f2:	f406                	sd	ra,40(sp)
+    800026f4:	0028                	addi	a0,sp,8
+    800026f6:	01710713          	addi	a4,sp,23
+    800026fa:	45a5                	li	a1,9
+    800026fc:	a011                	j	80002700 <printhex+0x12>
+    800026fe:	177d                	addi	a4,a4,-1
+    80002700:	00f6f793          	andi	a5,a3,15
+    80002704:	03000613          	li	a2,48
+    80002708:	00f5f463          	bgeu	a1,a5,80002710 <printhex+0x22>
+    8000270c:	05700613          	li	a2,87
+    80002710:	9fb1                	addw	a5,a5,a2
+    80002712:	00f70023          	sb	a5,0(a4)
+    80002716:	8291                	srli	a3,a3,0x4
+    80002718:	fee513e3          	bne	a0,a4,800026fe <printhex+0x10>
+    8000271c:	00010c23          	sb	zero,24(sp)
+    80002720:	f75ff0ef          	jal	80002694 <printstr>
+    80002724:	70a2                	ld	ra,40(sp)
+    80002726:	6145                	addi	sp,sp,48
+    80002728:	8082                	ret
+
+000000008000272a <printf>:
+    8000272a:	711d                	addi	sp,sp,-96
+    8000272c:	02810313          	addi	t1,sp,40
+    80002730:	f42e                	sd	a1,40(sp)
+    80002732:	f832                	sd	a2,48(sp)
+    80002734:	fc36                	sd	a3,56(sp)
+    80002736:	862a                	mv	a2,a0
+    80002738:	869a                	mv	a3,t1
+    8000273a:	00000517          	auipc	a0,0x0
+    8000273e:	e7850513          	addi	a0,a0,-392 # 800025b2 <putchar>
+    80002742:	4581                	li	a1,0
+    80002744:	ec06                	sd	ra,24(sp)
+    80002746:	e0ba                	sd	a4,64(sp)
+    80002748:	e4be                	sd	a5,72(sp)
+    8000274a:	e8c2                	sd	a6,80(sp)
+    8000274c:	ecc6                	sd	a7,88(sp)
+    8000274e:	e41a                	sd	t1,8(sp)
+    80002750:	b9dff0ef          	jal	800022ec <vprintfmt>
+    80002754:	60e2                	ld	ra,24(sp)
+    80002756:	4501                	li	a0,0
+    80002758:	6125                	addi	sp,sp,96
+    8000275a:	8082                	ret
+
+000000008000275c <sprintf>:
+    8000275c:	711d                	addi	sp,sp,-96
+    8000275e:	03010313          	addi	t1,sp,48
+    80002762:	f022                	sd	s0,32(sp)
+    80002764:	e42a                	sd	a0,8(sp)
+    80002766:	f832                	sd	a2,48(sp)
+    80002768:	fc36                	sd	a3,56(sp)
+    8000276a:	842a                	mv	s0,a0
+    8000276c:	862e                	mv	a2,a1
+    8000276e:	00000517          	auipc	a0,0x0
+    80002772:	e3650513          	addi	a0,a0,-458 # 800025a4 <sprintf_putch.0>
+    80002776:	002c                	addi	a1,sp,8
+    80002778:	869a                	mv	a3,t1
+    8000277a:	f406                	sd	ra,40(sp)
+    8000277c:	e4be                	sd	a5,72(sp)
+    8000277e:	e0ba                	sd	a4,64(sp)
+    80002780:	e8c2                	sd	a6,80(sp)
+    80002782:	ecc6                	sd	a7,88(sp)
+    80002784:	ec1a                	sd	t1,24(sp)
+    80002786:	b67ff0ef          	jal	800022ec <vprintfmt>
+    8000278a:	67a2                	ld	a5,8(sp)
+    8000278c:	00078023          	sb	zero,0(a5)
+    80002790:	6522                	ld	a0,8(sp)
+    80002792:	70a2                	ld	ra,40(sp)
+    80002794:	9d01                	subw	a0,a0,s0
+    80002796:	7402                	ld	s0,32(sp)
+    80002798:	6125                	addi	sp,sp,96
+    8000279a:	8082                	ret
+
+000000008000279c <memcpy>:
+    8000279c:	00c5e7b3          	or	a5,a1,a2
+    800027a0:	8fc9                	or	a5,a5,a0
+    800027a2:	8b9d                	andi	a5,a5,7
+    800027a4:	83ae                	mv	t2,a1
+    800027a6:	00c506b3          	add	a3,a0,a2
+    800027aa:	cf91                	beqz	a5,800027c6 <memcpy+0x2a>
+    800027ac:	962e                	add	a2,a2,a1
+    800027ae:	87aa                	mv	a5,a0
+    800027b0:	08d57a63          	bgeu	a0,a3,80002844 <memcpy+0xa8>
+    800027b4:	0005c703          	lbu	a4,0(a1)
+    800027b8:	0585                	addi	a1,a1,1
+    800027ba:	0785                	addi	a5,a5,1
+    800027bc:	fee78fa3          	sb	a4,-1(a5)
+    800027c0:	fec59ae3          	bne	a1,a2,800027b4 <memcpy+0x18>
+    800027c4:	8082                	ret
+    800027c6:	04050713          	addi	a4,a0,64
+    800027ca:	06d77e63          	bgeu	a4,a3,80002846 <memcpy+0xaa>
+    800027ce:	87ba                	mv	a5,a4
+    800027d0:	0005b283          	ld	t0,0(a1)
+    800027d4:	0085bf83          	ld	t6,8(a1)
+    800027d8:	0105bf03          	ld	t5,16(a1)
+    800027dc:	0185be83          	ld	t4,24(a1)
+    800027e0:	0205be03          	ld	t3,32(a1)
+    800027e4:	0285b303          	ld	t1,40(a1)
+    800027e8:	0305b883          	ld	a7,48(a1)
+    800027ec:	0385b803          	ld	a6,56(a1)
+    800027f0:	04078793          	addi	a5,a5,64
+    800027f4:	f857b023          	sd	t0,-128(a5)
+    800027f8:	f9f7b423          	sd	t6,-120(a5)
+    800027fc:	f9e7b823          	sd	t5,-112(a5)
+    80002800:	f9d7bc23          	sd	t4,-104(a5)
+    80002804:	fbc7b023          	sd	t3,-96(a5)
+    80002808:	fa67b423          	sd	t1,-88(a5)
+    8000280c:	fb17b823          	sd	a7,-80(a5)
+    80002810:	fb07bc23          	sd	a6,-72(a5)
+    80002814:	04058593          	addi	a1,a1,64
+    80002818:	fad7ece3          	bltu	a5,a3,800027d0 <memcpy+0x34>
+    8000281c:	fbf60613          	addi	a2,a2,-65
+    80002820:	fc067613          	andi	a2,a2,-64
+    80002824:	04038393          	addi	t2,t2,64
+    80002828:	00c707b3          	add	a5,a4,a2
+    8000282c:	00c385b3          	add	a1,t2,a2
+    80002830:	f8d7fae3          	bgeu	a5,a3,800027c4 <memcpy+0x28>
+    80002834:	6198                	ld	a4,0(a1)
+    80002836:	07a1                	addi	a5,a5,8
+    80002838:	05a1                	addi	a1,a1,8
+    8000283a:	fee7bc23          	sd	a4,-8(a5)
+    8000283e:	fed7ebe3          	bltu	a5,a3,80002834 <memcpy+0x98>
+    80002842:	8082                	ret
+    80002844:	8082                	ret
+    80002846:	87aa                	mv	a5,a0
+    80002848:	b7e5                	j	80002830 <memcpy+0x94>
+
+000000008000284a <memset>:
+    8000284a:	00c567b3          	or	a5,a0,a2
+    8000284e:	8b9d                	andi	a5,a5,7
+    80002850:	962a                	add	a2,a2,a0
+    80002852:	cb91                	beqz	a5,80002866 <memset+0x1c>
+    80002854:	87aa                	mv	a5,a0
+    80002856:	02c57c63          	bgeu	a0,a2,8000288e <memset+0x44>
+    8000285a:	0785                	addi	a5,a5,1
+    8000285c:	feb78fa3          	sb	a1,-1(a5)
+    80002860:	fef61de3          	bne	a2,a5,8000285a <memset+0x10>
+    80002864:	8082                	ret
+    80002866:	fec57fe3          	bgeu	a0,a2,80002864 <memset+0x1a>
+    8000286a:	010107b7          	lui	a5,0x1010
+    8000286e:	10178793          	addi	a5,a5,257 # 1010101 <buflen.1+0x1010081>
+    80002872:	02079713          	slli	a4,a5,0x20
+    80002876:	973e                	add	a4,a4,a5
+    80002878:	0ff5f593          	zext.b	a1,a1
+    8000287c:	02e585b3          	mul	a1,a1,a4
+    80002880:	87aa                	mv	a5,a0
+    80002882:	07a1                	addi	a5,a5,8
+    80002884:	feb7bc23          	sd	a1,-8(a5)
+    80002888:	fec7ede3          	bltu	a5,a2,80002882 <memset+0x38>
+    8000288c:	8082                	ret
+    8000288e:	8082                	ret
+
+0000000080002890 <_init>:
+    80002890:	7171                	addi	sp,sp,-176
+    80002892:	c2818793          	addi	a5,gp,-984 # 80003c60 <_tdata_begin>
+    80002896:	f122                	sd	s0,160(sp)
+    80002898:	c2818413          	addi	s0,gp,-984 # 80003c60 <_tdata_begin>
+    8000289c:	ed26                	sd	s1,152(sp)
+    8000289e:	40f404b3          	sub	s1,s0,a5
+    800028a2:	8626                	mv	a2,s1
+    800028a4:	e54e                	sd	s3,136(sp)
+    800028a6:	e152                	sd	s4,128(sp)
+    800028a8:	89aa                	mv	s3,a0
+    800028aa:	8a2e                	mv	s4,a1
+    800028ac:	8512                	mv	a0,tp
+    800028ae:	85be                	mv	a1,a5
+    800028b0:	f506                	sd	ra,168(sp)
+    800028b2:	e94a                	sd	s2,144(sp)
+    800028b4:	fcd6                	sd	s5,120(sp)
+    800028b6:	8a92                	mv	s5,tp
+    800028b8:	ee5ff0ef          	jal	8000279c <memcpy>
+    800028bc:	00001617          	auipc	a2,0x1
+    800028c0:	44860613          	addi	a2,a2,1096 # 80003d04 <_tbss_end>
+    800028c4:	8e01                	sub	a2,a2,s0
+    800028c6:	009a8533          	add	a0,s5,s1
+    800028ca:	4581                	li	a1,0
+    800028cc:	f7fff0ef          	jal	8000284a <memset>
+    800028d0:	85d2                	mv	a1,s4
+    800028d2:	854e                	mv	a0,s3
+    800028d4:	95bff0ef          	jal	8000222e <thread_entry>
+    800028d8:	03f10913          	addi	s2,sp,63
+    800028dc:	4581                	li	a1,0
+    800028de:	4501                	li	a0,0
+    800028e0:	fc097913          	andi	s2,s2,-64
+    800028e4:	10e000ef          	jal	800029f2 <main>
+    800028e8:	c1818493          	addi	s1,gp,-1000 # 80003c50 <counter_names>
+    800028ec:	8aaa                	mv	s5,a0
+    800028ee:	89ca                	mv	s3,s2
+    800028f0:	8a26                	mv	s4,s1
+    800028f2:	c0818413          	addi	s0,gp,-1016 # 80003c40 <counters>
+    800028f6:	6014                	ld	a3,0(s0)
+    800028f8:	ee89                	bnez	a3,80002912 <_init+0x82>
+    800028fa:	0421                	addi	s0,s0,8
+    800028fc:	04a1                	addi	s1,s1,8
+    800028fe:	ff441ce3          	bne	s0,s4,800028f6 <_init+0x66>
+    80002902:	01390563          	beq	s2,s3,8000290c <_init+0x7c>
+    80002906:	854a                	mv	a0,s2
+    80002908:	d8dff0ef          	jal	80002694 <printstr>
+    8000290c:	8556                	mv	a0,s5
+    8000290e:	d4fff0ef          	jal	8000265c <tohost_exit>
+    80002912:	6090                	ld	a2,0(s1)
+    80002914:	854e                	mv	a0,s3
+    80002916:	00000597          	auipc	a1,0x0
+    8000291a:	1ba58593          	addi	a1,a1,442 # 80002ad0 <main+0xde>
+    8000291e:	e3fff0ef          	jal	8000275c <sprintf>
+    80002922:	99aa                	add	s3,s3,a0
+    80002924:	bfd9                	j	800028fa <_init+0x6a>
+
+0000000080002926 <strlen>:
+    80002926:	00054783          	lbu	a5,0(a0)
+    8000292a:	cb89                	beqz	a5,8000293c <strlen+0x16>
+    8000292c:	87aa                	mv	a5,a0
+    8000292e:	0017c703          	lbu	a4,1(a5)
+    80002932:	0785                	addi	a5,a5,1
+    80002934:	ff6d                	bnez	a4,8000292e <strlen+0x8>
+    80002936:	40a78533          	sub	a0,a5,a0
+    8000293a:	8082                	ret
+    8000293c:	4501                	li	a0,0
+    8000293e:	8082                	ret
+
+0000000080002940 <strnlen>:
+    80002940:	00b506b3          	add	a3,a0,a1
+    80002944:	87aa                	mv	a5,a0
+    80002946:	e589                	bnez	a1,80002950 <strnlen+0x10>
+    80002948:	a811                	j	8000295c <strnlen+0x1c>
+    8000294a:	0785                	addi	a5,a5,1
+    8000294c:	00d78563          	beq	a5,a3,80002956 <strnlen+0x16>
+    80002950:	0007c703          	lbu	a4,0(a5)
+    80002954:	fb7d                	bnez	a4,8000294a <strnlen+0xa>
+    80002956:	40a78533          	sub	a0,a5,a0
+    8000295a:	8082                	ret
+    8000295c:	4501                	li	a0,0
+    8000295e:	8082                	ret
+
+0000000080002960 <strcmp>:
+    80002960:	00054783          	lbu	a5,0(a0)
+    80002964:	0505                	addi	a0,a0,1
+    80002966:	0585                	addi	a1,a1,1
+    80002968:	0007869b          	sext.w	a3,a5
+    8000296c:	fff5c703          	lbu	a4,-1(a1)
+    80002970:	c399                	beqz	a5,80002976 <strcmp+0x16>
+    80002972:	fee687e3          	beq	a3,a4,80002960 <strcmp>
+    80002976:	40e7853b          	subw	a0,a5,a4
+    8000297a:	8082                	ret
+
+000000008000297c <strcpy>:
+    8000297c:	87aa                	mv	a5,a0
+    8000297e:	0005c703          	lbu	a4,0(a1)
+    80002982:	0585                	addi	a1,a1,1
+    80002984:	0785                	addi	a5,a5,1
+    80002986:	fee78fa3          	sb	a4,-1(a5)
+    8000298a:	fb75                	bnez	a4,8000297e <strcpy+0x2>
+    8000298c:	8082                	ret
+
+000000008000298e <atol>:
+    8000298e:	00054703          	lbu	a4,0(a0)
+    80002992:	02000693          	li	a3,32
+    80002996:	87aa                	mv	a5,a0
+    80002998:	00d71763          	bne	a4,a3,800029a6 <atol+0x18>
+    8000299c:	0017c703          	lbu	a4,1(a5)
+    800029a0:	0785                	addi	a5,a5,1
+    800029a2:	fed70de3          	beq	a4,a3,8000299c <atol+0xe>
+    800029a6:	fd57069b          	addiw	a3,a4,-43
+    800029aa:	0fd6f693          	andi	a3,a3,253
+    800029ae:	ea95                	bnez	a3,800029e2 <atol+0x54>
+    800029b0:	0017c683          	lbu	a3,1(a5)
+    800029b4:	fd370713          	addi	a4,a4,-45
+    800029b8:	00173613          	seqz	a2,a4
+    800029bc:	ca8d                	beqz	a3,800029ee <atol+0x60>
+    800029be:	0785                	addi	a5,a5,1
+    800029c0:	4501                	li	a0,0
+    800029c2:	0785                	addi	a5,a5,1
+    800029c4:	fd06859b          	addiw	a1,a3,-48
+    800029c8:	00251713          	slli	a4,a0,0x2
+    800029cc:	0007c683          	lbu	a3,0(a5)
+    800029d0:	972a                	add	a4,a4,a0
+    800029d2:	0706                	slli	a4,a4,0x1
+    800029d4:	00e58533          	add	a0,a1,a4
+    800029d8:	f6ed                	bnez	a3,800029c2 <atol+0x34>
+    800029da:	c219                	beqz	a2,800029e0 <atol+0x52>
+    800029dc:	40a00533          	neg	a0,a0
+    800029e0:	8082                	ret
+    800029e2:	0007c683          	lbu	a3,0(a5)
+    800029e6:	4601                	li	a2,0
+    800029e8:	fee1                	bnez	a3,800029c0 <atol+0x32>
+    800029ea:	4501                	li	a0,0
+    800029ec:	8082                	ret
+    800029ee:	4501                	li	a0,0
+    800029f0:	b7ed                	j	800029da <atol+0x4c>
+
+Disassembly of section .text.startup:
+
+00000000800029f2 <main>:
+    800029f2:	1141                	addi	sp,sp,-16
+    800029f4:	00000517          	auipc	a0,0x0
+    800029f8:	0c450513          	addi	a0,a0,196 # 80002ab8 <main+0xc6>
+    800029fc:	e406                	sd	ra,8(sp)
+    800029fe:	c97ff0ef          	jal	80002694 <printstr>
+    80002a02:	60a2                	ld	ra,8(sp)
+    80002a04:	557d                	li	a0,-1
+    80002a06:	0141                	addi	sp,sp,16
+    80002a08:	8082                	ret
+
+Disassembly of section .data:
+
+0000000080002c38 <input2_data>:
+    80002c38:	0001                	nop
+    80002c3a:	0000                	unimp
+    80002c3c:	0001                	nop
+    80002c3e:	0000                	unimp
+    80002c40:	0000                	unimp
+    80002c42:	0000                	unimp
+    80002c44:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002c48:	0001                	nop
+    80002c4a:	0000                	unimp
+    80002c4c:	0002                	c.slli64	zero
+    80002c4e:	0000                	unimp
+    80002c50:	0000                	unimp
+    80002c52:	0000                	unimp
+    80002c54:	0000                	unimp
+    80002c56:	0000                	unimp
+    80002c58:	0000                	unimp
+    80002c5a:	0000                	unimp
+    80002c5c:	0000                	unimp
+    80002c5e:	0000                	unimp
+    80002c60:	0000                	unimp
+    80002c62:	0000                	unimp
+    80002c64:	0002                	c.slli64	zero
+    80002c66:	0000                	unimp
+    80002c68:	0001                	nop
+    80002c6a:	0000                	unimp
+    80002c6c:	0002                	c.slli64	zero
+    80002c6e:	0000                	unimp
+    80002c70:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002c74:	0000                	unimp
+    80002c76:	0000                	unimp
+    80002c78:	0000                	unimp
+    80002c7a:	0000                	unimp
+    80002c7c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002c80:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002c84:	0002                	c.slli64	zero
+    80002c86:	0000                	unimp
+    80002c88:	0002                	c.slli64	zero
+    80002c8a:	0000                	unimp
+    80002c8c:	0001                	nop
+    80002c8e:	0000                	unimp
+    80002c90:	0002                	c.slli64	zero
+    80002c92:	0000                	unimp
+    80002c94:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002c98:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002c9c:	0000                	unimp
+    80002c9e:	0000                	unimp
+    80002ca0:	0002                	c.slli64	zero
+    80002ca2:	0000                	unimp
+    80002ca4:	0002                	c.slli64	zero
+    80002ca6:	0000                	unimp
+    80002ca8:	0001                	nop
+    80002caa:	0000                	unimp
+    80002cac:	0001                	nop
+    80002cae:	0000                	unimp
+    80002cb0:	0002                	c.slli64	zero
+    80002cb2:	0000                	unimp
+    80002cb4:	0002                	c.slli64	zero
+    80002cb6:	0000                	unimp
+    80002cb8:	0000                	unimp
+    80002cba:	0000                	unimp
+    80002cbc:	0002                	c.slli64	zero
+    80002cbe:	0000                	unimp
+    80002cc0:	0002                	c.slli64	zero
+    80002cc2:	0000                	unimp
+    80002cc4:	0001                	nop
+    80002cc6:	0000                	unimp
+    80002cc8:	0002                	c.slli64	zero
+    80002cca:	0000                	unimp
+    80002ccc:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002cd0:	0002                	c.slli64	zero
+    80002cd2:	0000                	unimp
+    80002cd4:	0002                	c.slli64	zero
+    80002cd6:	0000                	unimp
+    80002cd8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002cdc:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002ce0:	0002                	c.slli64	zero
+    80002ce2:	0000                	unimp
+    80002ce4:	0002                	c.slli64	zero
+    80002ce6:	0000                	unimp
+    80002ce8:	0001                	nop
+    80002cea:	0000                	unimp
+    80002cec:	0001                	nop
+    80002cee:	0000                	unimp
+    80002cf0:	0001                	nop
+    80002cf2:	0000                	unimp
+    80002cf4:	0001                	nop
+    80002cf6:	0000                	unimp
+    80002cf8:	0002                	c.slli64	zero
+    80002cfa:	0000                	unimp
+    80002cfc:	0001                	nop
+    80002cfe:	0000                	unimp
+    80002d00:	0002                	c.slli64	zero
+    80002d02:	0000                	unimp
+    80002d04:	0002                	c.slli64	zero
+    80002d06:	0000                	unimp
+    80002d08:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d0c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d10:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d14:	0000                	unimp
+    80002d16:	0000                	unimp
+    80002d18:	0000                	unimp
+    80002d1a:	0000                	unimp
+    80002d1c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d20:	0002                	c.slli64	zero
+    80002d22:	0000                	unimp
+    80002d24:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d28:	0002                	c.slli64	zero
+    80002d2a:	0000                	unimp
+    80002d2c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d30:	0001                	nop
+    80002d32:	0000                	unimp
+    80002d34:	0002                	c.slli64	zero
+    80002d36:	0000                	unimp
+    80002d38:	0001                	nop
+    80002d3a:	0000                	unimp
+    80002d3c:	0001                	nop
+    80002d3e:	0000                	unimp
+    80002d40:	0002                	c.slli64	zero
+    80002d42:	0000                	unimp
+    80002d44:	0002                	c.slli64	zero
+    80002d46:	0000                	unimp
+    80002d48:	0000                	unimp
+    80002d4a:	0000                	unimp
+    80002d4c:	0001                	nop
+    80002d4e:	0000                	unimp
+    80002d50:	0000                	unimp
+    80002d52:	0000                	unimp
+    80002d54:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d58:	0002                	c.slli64	zero
+    80002d5a:	0000                	unimp
+    80002d5c:	0001                	nop
+    80002d5e:	0000                	unimp
+    80002d60:	0001                	nop
+    80002d62:	0000                	unimp
+    80002d64:	0001                	nop
+    80002d66:	0000                	unimp
+    80002d68:	0002                	c.slli64	zero
+    80002d6a:	0000                	unimp
+    80002d6c:	0000                	unimp
+    80002d6e:	0000                	unimp
+    80002d70:	0001                	nop
+    80002d72:	0000                	unimp
+    80002d74:	0002                	c.slli64	zero
+    80002d76:	0000                	unimp
+    80002d78:	0002                	c.slli64	zero
+    80002d7a:	0000                	unimp
+    80002d7c:	0000                	unimp
+    80002d7e:	0000                	unimp
+    80002d80:	0002                	c.slli64	zero
+    80002d82:	0000                	unimp
+    80002d84:	0001                	nop
+    80002d86:	0000                	unimp
+    80002d88:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d8c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d90:	0002                	c.slli64	zero
+    80002d92:	0000                	unimp
+    80002d94:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002d98:	0002                	c.slli64	zero
+    80002d9a:	0000                	unimp
+    80002d9c:	0000                	unimp
+    80002d9e:	0000                	unimp
+    80002da0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002da4:	0001                	nop
+    80002da6:	0000                	unimp
+    80002da8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002dac:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002db0:	0002                	c.slli64	zero
+    80002db2:	0000                	unimp
+    80002db4:	0000                	unimp
+    80002db6:	0000                	unimp
+    80002db8:	0001                	nop
+    80002dba:	0000                	unimp
+    80002dbc:	0000                	unimp
+    80002dbe:	0000                	unimp
+    80002dc0:	0001                	nop
+    80002dc2:	0000                	unimp
+    80002dc4:	0001                	nop
+    80002dc6:	0000                	unimp
+    80002dc8:	0002                	c.slli64	zero
+    80002dca:	0000                	unimp
+    80002dcc:	0002                	c.slli64	zero
+    80002dce:	0000                	unimp
+    80002dd0:	0001                	nop
+    80002dd2:	0000                	unimp
+    80002dd4:	0001                	nop
+    80002dd6:	0000                	unimp
+    80002dd8:	0002                	c.slli64	zero
+    80002dda:	0000                	unimp
+    80002ddc:	0002                	c.slli64	zero
+    80002dde:	0000                	unimp
+    80002de0:	0001                	nop
+    80002de2:	0000                	unimp
+    80002de4:	0002                	c.slli64	zero
+    80002de6:	0000                	unimp
+    80002de8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002dec:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002df0:	0001                	nop
+    80002df2:	0000                	unimp
+    80002df4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002df8:	0002                	c.slli64	zero
+    80002dfa:	0000                	unimp
+    80002dfc:	0002                	c.slli64	zero
+    80002dfe:	0000                	unimp
+    80002e00:	0002                	c.slli64	zero
+    80002e02:	0000                	unimp
+    80002e04:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e08:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e0c:	0001                	nop
+    80002e0e:	0000                	unimp
+    80002e10:	0000                	unimp
+    80002e12:	0000                	unimp
+    80002e14:	0002                	c.slli64	zero
+    80002e16:	0000                	unimp
+    80002e18:	0001                	nop
+    80002e1a:	0000                	unimp
+    80002e1c:	0000                	unimp
+    80002e1e:	0000                	unimp
+    80002e20:	0000                	unimp
+    80002e22:	0000                	unimp
+    80002e24:	0000                	unimp
+    80002e26:	0000                	unimp
+    80002e28:	0001                	nop
+    80002e2a:	0000                	unimp
+    80002e2c:	0001                	nop
+    80002e2e:	0000                	unimp
+    80002e30:	0002                	c.slli64	zero
+    80002e32:	0000                	unimp
+    80002e34:	0000                	unimp
+    80002e36:	0000                	unimp
+    80002e38:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e3c:	0002                	c.slli64	zero
+    80002e3e:	0000                	unimp
+    80002e40:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e44:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e48:	0000                	unimp
+    80002e4a:	0000                	unimp
+    80002e4c:	0002                	c.slli64	zero
+    80002e4e:	0000                	unimp
+    80002e50:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e54:	0001                	nop
+    80002e56:	0000                	unimp
+    80002e58:	0000                	unimp
+    80002e5a:	0000                	unimp
+    80002e5c:	0000                	unimp
+    80002e5e:	0000                	unimp
+    80002e60:	0002                	c.slli64	zero
+    80002e62:	0000                	unimp
+    80002e64:	0001                	nop
+    80002e66:	0000                	unimp
+    80002e68:	0002                	c.slli64	zero
+    80002e6a:	0000                	unimp
+    80002e6c:	0000                	unimp
+    80002e6e:	0000                	unimp
+    80002e70:	0002                	c.slli64	zero
+    80002e72:	0000                	unimp
+    80002e74:	0001                	nop
+    80002e76:	0000                	unimp
+    80002e78:	0001                	nop
+    80002e7a:	0000                	unimp
+    80002e7c:	0002                	c.slli64	zero
+    80002e7e:	0000                	unimp
+    80002e80:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e84:	0001                	nop
+    80002e86:	0000                	unimp
+    80002e88:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002e8c:	0002                	c.slli64	zero
+    80002e8e:	0000                	unimp
+    80002e90:	0001                	nop
+    80002e92:	0000                	unimp
+    80002e94:	0000                	unimp
+    80002e96:	0000                	unimp
+    80002e98:	0000                	unimp
+    80002e9a:	0000                	unimp
+    80002e9c:	0000                	unimp
+    80002e9e:	0000                	unimp
+    80002ea0:	0000                	unimp
+    80002ea2:	0000                	unimp
+    80002ea4:	0000                	unimp
+    80002ea6:	0000                	unimp
+    80002ea8:	0002                	c.slli64	zero
+    80002eaa:	0000                	unimp
+    80002eac:	0002                	c.slli64	zero
+    80002eae:	0000                	unimp
+    80002eb0:	0000                	unimp
+    80002eb2:	0000                	unimp
+    80002eb4:	0002                	c.slli64	zero
+    80002eb6:	0000                	unimp
+    80002eb8:	0001                	nop
+    80002eba:	0000                	unimp
+    80002ebc:	0002                	c.slli64	zero
+    80002ebe:	0000                	unimp
+    80002ec0:	0000                	unimp
+    80002ec2:	0000                	unimp
+    80002ec4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002ec8:	0002                	c.slli64	zero
+    80002eca:	0000                	unimp
+    80002ecc:	0002                	c.slli64	zero
+    80002ece:	0000                	unimp
+    80002ed0:	0000                	unimp
+    80002ed2:	0000                	unimp
+    80002ed4:	0000                	unimp
+    80002ed6:	0000                	unimp
+    80002ed8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002edc:	0002                	c.slli64	zero
+    80002ede:	0000                	unimp
+    80002ee0:	0001                	nop
+    80002ee2:	0000                	unimp
+    80002ee4:	0001                	nop
+    80002ee6:	0000                	unimp
+    80002ee8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002eec:	0000                	unimp
+    80002eee:	0000                	unimp
+    80002ef0:	0002                	c.slli64	zero
+    80002ef2:	0000                	unimp
+    80002ef4:	0000                	unimp
+    80002ef6:	0000                	unimp
+    80002ef8:	0000                	unimp
+    80002efa:	0000                	unimp
+    80002efc:	0001                	nop
+    80002efe:	0000                	unimp
+    80002f00:	0000                	unimp
+    80002f02:	0000                	unimp
+    80002f04:	0002                	c.slli64	zero
+    80002f06:	0000                	unimp
+    80002f08:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f0c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f10:	0001                	nop
+    80002f12:	0000                	unimp
+    80002f14:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f18:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f1c:	0000                	unimp
+    80002f1e:	0000                	unimp
+    80002f20:	0000                	unimp
+    80002f22:	0000                	unimp
+    80002f24:	0002                	c.slli64	zero
+    80002f26:	0000                	unimp
+    80002f28:	0002                	c.slli64	zero
+    80002f2a:	0000                	unimp
+    80002f2c:	0000                	unimp
+    80002f2e:	0000                	unimp
+    80002f30:	0000                	unimp
+    80002f32:	0000                	unimp
+    80002f34:	0000                	unimp
+    80002f36:	0000                	unimp
+    80002f38:	0001                	nop
+    80002f3a:	0000                	unimp
+    80002f3c:	0000                	unimp
+    80002f3e:	0000                	unimp
+    80002f40:	0000                	unimp
+    80002f42:	0000                	unimp
+    80002f44:	0001                	nop
+    80002f46:	0000                	unimp
+    80002f48:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f4c:	0000                	unimp
+    80002f4e:	0000                	unimp
+    80002f50:	0002                	c.slli64	zero
+    80002f52:	0000                	unimp
+    80002f54:	0001                	nop
+    80002f56:	0000                	unimp
+    80002f58:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f5c:	0002                	c.slli64	zero
+    80002f5e:	0000                	unimp
+    80002f60:	0002                	c.slli64	zero
+    80002f62:	0000                	unimp
+    80002f64:	0001                	nop
+    80002f66:	0000                	unimp
+    80002f68:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f6c:	0002                	c.slli64	zero
+    80002f6e:	0000                	unimp
+    80002f70:	0000                	unimp
+    80002f72:	0000                	unimp
+    80002f74:	0001                	nop
+    80002f76:	0000                	unimp
+    80002f78:	0002                	c.slli64	zero
+    80002f7a:	0000                	unimp
+    80002f7c:	0002                	c.slli64	zero
+    80002f7e:	0000                	unimp
+    80002f80:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f84:	0002                	c.slli64	zero
+    80002f86:	0000                	unimp
+    80002f88:	0001                	nop
+    80002f8a:	0000                	unimp
+    80002f8c:	0001                	nop
+    80002f8e:	0000                	unimp
+    80002f90:	0001                	nop
+    80002f92:	0000                	unimp
+    80002f94:	0001                	nop
+    80002f96:	0000                	unimp
+    80002f98:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002f9c:	0000                	unimp
+    80002f9e:	0000                	unimp
+    80002fa0:	0001                	nop
+    80002fa2:	0000                	unimp
+    80002fa4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002fa8:	0002                	c.slli64	zero
+    80002faa:	0000                	unimp
+    80002fac:	0002                	c.slli64	zero
+    80002fae:	0000                	unimp
+    80002fb0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002fb4:	0001                	nop
+    80002fb6:	0000                	unimp
+    80002fb8:	0001                	nop
+    80002fba:	0000                	unimp
+    80002fbc:	0002                	c.slli64	zero
+    80002fbe:	0000                	unimp
+    80002fc0:	0000                	unimp
+    80002fc2:	0000                	unimp
+    80002fc4:	0002                	c.slli64	zero
+    80002fc6:	0000                	unimp
+    80002fc8:	0001                	nop
+    80002fca:	0000                	unimp
+    80002fcc:	0001                	nop
+    80002fce:	0000                	unimp
+    80002fd0:	0002                	c.slli64	zero
+    80002fd2:	0000                	unimp
+    80002fd4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80002fd8:	0001                	nop
+    80002fda:	0000                	unimp
+    80002fdc:	0000                	unimp
+    80002fde:	0000                	unimp
+    80002fe0:	0001                	nop
+    80002fe2:	0000                	unimp
+    80002fe4:	0000                	unimp
+    80002fe6:	0000                	unimp
+    80002fe8:	0001                	nop
+    80002fea:	0000                	unimp
+    80002fec:	0001                	nop
+    80002fee:	0000                	unimp
+    80002ff0:	0000                	unimp
+    80002ff2:	0000                	unimp
+    80002ff4:	0000                	unimp
+    80002ff6:	0000                	unimp
+    80002ff8:	0002                	c.slli64	zero
+    80002ffa:	0000                	unimp
+    80002ffc:	0000                	unimp
+    80002ffe:	0000                	unimp
+    80003000:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003004:	0000                	unimp
+    80003006:	0000                	unimp
+    80003008:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000300c:	0000                	unimp
+    8000300e:	0000                	unimp
+    80003010:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003014:	0002                	c.slli64	zero
+    80003016:	0000                	unimp
+    80003018:	0002                	c.slli64	zero
+    8000301a:	0000                	unimp
+    8000301c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003020:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003024:	0002                	c.slli64	zero
+    80003026:	0000                	unimp
+    80003028:	0001                	nop
+    8000302a:	0000                	unimp
+    8000302c:	0000                	unimp
+    8000302e:	0000                	unimp
+    80003030:	0002                	c.slli64	zero
+    80003032:	0000                	unimp
+    80003034:	0002                	c.slli64	zero
+    80003036:	0000                	unimp
+
+0000000080003038 <input1_data>:
+    80003038:	0000                	unimp
+    8000303a:	0000                	unimp
+    8000303c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003040:	0002                	c.slli64	zero
+    80003042:	0000                	unimp
+    80003044:	0000                	unimp
+    80003046:	0000                	unimp
+    80003048:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000304c:	0001                	nop
+    8000304e:	0000                	unimp
+    80003050:	0000                	unimp
+    80003052:	0000                	unimp
+    80003054:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003058:	0002                	c.slli64	zero
+    8000305a:	0000                	unimp
+    8000305c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003060:	0002                	c.slli64	zero
+    80003062:	0000                	unimp
+    80003064:	0000                	unimp
+    80003066:	0000                	unimp
+    80003068:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000306c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003070:	0001                	nop
+    80003072:	0000                	unimp
+    80003074:	0002                	c.slli64	zero
+    80003076:	0000                	unimp
+    80003078:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000307c:	0000                	unimp
+    8000307e:	0000                	unimp
+    80003080:	0000                	unimp
+    80003082:	0000                	unimp
+    80003084:	0001                	nop
+    80003086:	0000                	unimp
+    80003088:	0001                	nop
+    8000308a:	0000                	unimp
+    8000308c:	0001                	nop
+    8000308e:	0000                	unimp
+    80003090:	0002                	c.slli64	zero
+    80003092:	0000                	unimp
+    80003094:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003098:	0001                	nop
+    8000309a:	0000                	unimp
+    8000309c:	0002                	c.slli64	zero
+    8000309e:	0000                	unimp
+    800030a0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030a4:	0001                	nop
+    800030a6:	0000                	unimp
+    800030a8:	0001                	nop
+    800030aa:	0000                	unimp
+    800030ac:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030b0:	0002                	c.slli64	zero
+    800030b2:	0000                	unimp
+    800030b4:	0002                	c.slli64	zero
+    800030b6:	0000                	unimp
+    800030b8:	0000                	unimp
+    800030ba:	0000                	unimp
+    800030bc:	0001                	nop
+    800030be:	0000                	unimp
+    800030c0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030c4:	0002                	c.slli64	zero
+    800030c6:	0000                	unimp
+    800030c8:	0002                	c.slli64	zero
+    800030ca:	0000                	unimp
+    800030cc:	0002                	c.slli64	zero
+    800030ce:	0000                	unimp
+    800030d0:	0000                	unimp
+    800030d2:	0000                	unimp
+    800030d4:	0000                	unimp
+    800030d6:	0000                	unimp
+    800030d8:	0001                	nop
+    800030da:	0000                	unimp
+    800030dc:	0000                	unimp
+    800030de:	0000                	unimp
+    800030e0:	0001                	nop
+    800030e2:	0000                	unimp
+    800030e4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030e8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030ec:	0000                	unimp
+    800030ee:	0000                	unimp
+    800030f0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030f4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030f8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800030fc:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003100:	0000                	unimp
+    80003102:	0000                	unimp
+    80003104:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003108:	0002                	c.slli64	zero
+    8000310a:	0000                	unimp
+    8000310c:	0001                	nop
+    8000310e:	0000                	unimp
+    80003110:	0002                	c.slli64	zero
+    80003112:	0000                	unimp
+    80003114:	0002                	c.slli64	zero
+    80003116:	0000                	unimp
+    80003118:	0000                	unimp
+    8000311a:	0000                	unimp
+    8000311c:	0000                	unimp
+    8000311e:	0000                	unimp
+    80003120:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003124:	0000                	unimp
+    80003126:	0000                	unimp
+    80003128:	0001                	nop
+    8000312a:	0000                	unimp
+    8000312c:	0001                	nop
+    8000312e:	0000                	unimp
+    80003130:	0000                	unimp
+    80003132:	0000                	unimp
+    80003134:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003138:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000313c:	0001                	nop
+    8000313e:	0000                	unimp
+    80003140:	0002                	c.slli64	zero
+    80003142:	0000                	unimp
+    80003144:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003148:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000314c:	0000                	unimp
+    8000314e:	0000                	unimp
+    80003150:	0001                	nop
+    80003152:	0000                	unimp
+    80003154:	0002                	c.slli64	zero
+    80003156:	0000                	unimp
+    80003158:	0001                	nop
+    8000315a:	0000                	unimp
+    8000315c:	0000                	unimp
+    8000315e:	0000                	unimp
+    80003160:	0001                	nop
+    80003162:	0000                	unimp
+    80003164:	0002                	c.slli64	zero
+    80003166:	0000                	unimp
+    80003168:	0002                	c.slli64	zero
+    8000316a:	0000                	unimp
+    8000316c:	0001                	nop
+    8000316e:	0000                	unimp
+    80003170:	0000                	unimp
+    80003172:	0000                	unimp
+    80003174:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003178:	0001                	nop
+    8000317a:	0000                	unimp
+    8000317c:	0000                	unimp
+    8000317e:	0000                	unimp
+    80003180:	0002                	c.slli64	zero
+    80003182:	0000                	unimp
+    80003184:	0002                	c.slli64	zero
+    80003186:	0000                	unimp
+    80003188:	0001                	nop
+    8000318a:	0000                	unimp
+    8000318c:	0001                	nop
+    8000318e:	0000                	unimp
+    80003190:	0001                	nop
+    80003192:	0000                	unimp
+    80003194:	0001                	nop
+    80003196:	0000                	unimp
+    80003198:	0001                	nop
+    8000319a:	0000                	unimp
+    8000319c:	0001                	nop
+    8000319e:	0000                	unimp
+    800031a0:	0002                	c.slli64	zero
+    800031a2:	0000                	unimp
+    800031a4:	0000                	unimp
+    800031a6:	0000                	unimp
+    800031a8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031ac:	0001                	nop
+    800031ae:	0000                	unimp
+    800031b0:	0001                	nop
+    800031b2:	0000                	unimp
+    800031b4:	0002                	c.slli64	zero
+    800031b6:	0000                	unimp
+    800031b8:	0002                	c.slli64	zero
+    800031ba:	0000                	unimp
+    800031bc:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031c0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031c4:	0001                	nop
+    800031c6:	0000                	unimp
+    800031c8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031cc:	0002                	c.slli64	zero
+    800031ce:	0000                	unimp
+    800031d0:	0000                	unimp
+    800031d2:	0000                	unimp
+    800031d4:	0000                	unimp
+    800031d6:	0000                	unimp
+    800031d8:	0000                	unimp
+    800031da:	0000                	unimp
+    800031dc:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031e0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031e4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031e8:	0002                	c.slli64	zero
+    800031ea:	0000                	unimp
+    800031ec:	0001                	nop
+    800031ee:	0000                	unimp
+    800031f0:	0002                	c.slli64	zero
+    800031f2:	0000                	unimp
+    800031f4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800031f8:	0001                	nop
+    800031fa:	0000                	unimp
+    800031fc:	0000                	unimp
+    800031fe:	0000                	unimp
+    80003200:	0000                	unimp
+    80003202:	0000                	unimp
+    80003204:	0000                	unimp
+    80003206:	0000                	unimp
+    80003208:	0000                	unimp
+    8000320a:	0000                	unimp
+    8000320c:	0001                	nop
+    8000320e:	0000                	unimp
+    80003210:	0002                	c.slli64	zero
+    80003212:	0000                	unimp
+    80003214:	0002                	c.slli64	zero
+    80003216:	0000                	unimp
+    80003218:	0001                	nop
+    8000321a:	0000                	unimp
+    8000321c:	0001                	nop
+    8000321e:	0000                	unimp
+    80003220:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003224:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003228:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000322c:	0001                	nop
+    8000322e:	0000                	unimp
+    80003230:	0001                	nop
+    80003232:	0000                	unimp
+    80003234:	0002                	c.slli64	zero
+    80003236:	0000                	unimp
+    80003238:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000323c:	0001                	nop
+    8000323e:	0000                	unimp
+    80003240:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003244:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003248:	0002                	c.slli64	zero
+    8000324a:	0000                	unimp
+    8000324c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003250:	0002                	c.slli64	zero
+    80003252:	0000                	unimp
+    80003254:	0001                	nop
+    80003256:	0000                	unimp
+    80003258:	0002                	c.slli64	zero
+    8000325a:	0000                	unimp
+    8000325c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003260:	0000                	unimp
+    80003262:	0000                	unimp
+    80003264:	0002                	c.slli64	zero
+    80003266:	0000                	unimp
+    80003268:	0002                	c.slli64	zero
+    8000326a:	0000                	unimp
+    8000326c:	0001                	nop
+    8000326e:	0000                	unimp
+    80003270:	0001                	nop
+    80003272:	0000                	unimp
+    80003274:	0000                	unimp
+    80003276:	0000                	unimp
+    80003278:	0000                	unimp
+    8000327a:	0000                	unimp
+    8000327c:	0000                	unimp
+    8000327e:	0000                	unimp
+    80003280:	0000                	unimp
+    80003282:	0000                	unimp
+    80003284:	0000                	unimp
+    80003286:	0000                	unimp
+    80003288:	0001                	nop
+    8000328a:	0000                	unimp
+    8000328c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003290:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003294:	0001                	nop
+    80003296:	0000                	unimp
+    80003298:	0001                	nop
+    8000329a:	0000                	unimp
+    8000329c:	0001                	nop
+    8000329e:	0000                	unimp
+    800032a0:	0002                	c.slli64	zero
+    800032a2:	0000                	unimp
+    800032a4:	0002                	c.slli64	zero
+    800032a6:	0000                	unimp
+    800032a8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800032ac:	0002                	c.slli64	zero
+    800032ae:	0000                	unimp
+    800032b0:	0001                	nop
+    800032b2:	0000                	unimp
+    800032b4:	0001                	nop
+    800032b6:	0000                	unimp
+    800032b8:	0001                	nop
+    800032ba:	0000                	unimp
+    800032bc:	0001                	nop
+    800032be:	0000                	unimp
+    800032c0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800032c4:	0000                	unimp
+    800032c6:	0000                	unimp
+    800032c8:	0002                	c.slli64	zero
+    800032ca:	0000                	unimp
+    800032cc:	0002                	c.slli64	zero
+    800032ce:	0000                	unimp
+    800032d0:	0001                	nop
+    800032d2:	0000                	unimp
+    800032d4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800032d8:	0002                	c.slli64	zero
+    800032da:	0000                	unimp
+    800032dc:	0001                	nop
+    800032de:	0000                	unimp
+    800032e0:	0002                	c.slli64	zero
+    800032e2:	0000                	unimp
+    800032e4:	0002                	c.slli64	zero
+    800032e6:	0000                	unimp
+    800032e8:	0001                	nop
+    800032ea:	0000                	unimp
+    800032ec:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800032f0:	0001                	nop
+    800032f2:	0000                	unimp
+    800032f4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800032f8:	0001                	nop
+    800032fa:	0000                	unimp
+    800032fc:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003300:	0002                	c.slli64	zero
+    80003302:	0000                	unimp
+    80003304:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003308:	0001                	nop
+    8000330a:	0000                	unimp
+    8000330c:	0002                	c.slli64	zero
+    8000330e:	0000                	unimp
+    80003310:	0001                	nop
+    80003312:	0000                	unimp
+    80003314:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003318:	0002                	c.slli64	zero
+    8000331a:	0000                	unimp
+    8000331c:	0002                	c.slli64	zero
+    8000331e:	0000                	unimp
+    80003320:	0000                	unimp
+    80003322:	0000                	unimp
+    80003324:	0001                	nop
+    80003326:	0000                	unimp
+    80003328:	0000                	unimp
+    8000332a:	0000                	unimp
+    8000332c:	0000                	unimp
+    8000332e:	0000                	unimp
+    80003330:	0001                	nop
+    80003332:	0000                	unimp
+    80003334:	0002                	c.slli64	zero
+    80003336:	0000                	unimp
+    80003338:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000333c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003340:	0001                	nop
+    80003342:	0000                	unimp
+    80003344:	0000                	unimp
+    80003346:	0000                	unimp
+    80003348:	0000                	unimp
+    8000334a:	0000                	unimp
+    8000334c:	0000                	unimp
+    8000334e:	0000                	unimp
+    80003350:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003354:	0001                	nop
+    80003356:	0000                	unimp
+    80003358:	0002                	c.slli64	zero
+    8000335a:	0000                	unimp
+    8000335c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003360:	0002                	c.slli64	zero
+    80003362:	0000                	unimp
+    80003364:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003368:	0002                	c.slli64	zero
+    8000336a:	0000                	unimp
+    8000336c:	0000                	unimp
+    8000336e:	0000                	unimp
+    80003370:	0000                	unimp
+    80003372:	0000                	unimp
+    80003374:	0000                	unimp
+    80003376:	0000                	unimp
+    80003378:	0000                	unimp
+    8000337a:	0000                	unimp
+    8000337c:	0000                	unimp
+    8000337e:	0000                	unimp
+    80003380:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003384:	0001                	nop
+    80003386:	0000                	unimp
+    80003388:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000338c:	0000                	unimp
+    8000338e:	0000                	unimp
+    80003390:	0000                	unimp
+    80003392:	0000                	unimp
+    80003394:	0000                	unimp
+    80003396:	0000                	unimp
+    80003398:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    8000339c:	0001                	nop
+    8000339e:	0000                	unimp
+    800033a0:	0001                	nop
+    800033a2:	0000                	unimp
+    800033a4:	0001                	nop
+    800033a6:	0000                	unimp
+    800033a8:	0001                	nop
+    800033aa:	0000                	unimp
+    800033ac:	0002                	c.slli64	zero
+    800033ae:	0000                	unimp
+    800033b0:	0001                	nop
+    800033b2:	0000                	unimp
+    800033b4:	0002                	c.slli64	zero
+    800033b6:	0000                	unimp
+    800033b8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800033bc:	0002                	c.slli64	zero
+    800033be:	0000                	unimp
+    800033c0:	0000                	unimp
+    800033c2:	0000                	unimp
+    800033c4:	0000                	unimp
+    800033c6:	0000                	unimp
+    800033c8:	0002                	c.slli64	zero
+    800033ca:	0000                	unimp
+    800033cc:	0002                	c.slli64	zero
+    800033ce:	0000                	unimp
+    800033d0:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800033d4:	0000                	unimp
+    800033d6:	0000                	unimp
+    800033d8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800033dc:	0000                	unimp
+    800033de:	0000                	unimp
+    800033e0:	0000                	unimp
+    800033e2:	0000                	unimp
+    800033e4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800033e8:	0000                	unimp
+    800033ea:	0000                	unimp
+    800033ec:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800033f0:	0001                	nop
+    800033f2:	0000                	unimp
+    800033f4:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800033f8:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    800033fc:	0001                	nop
+    800033fe:	0000                	unimp
+    80003400:	0001                	nop
+    80003402:	0000                	unimp
+    80003404:	0001                	nop
+    80003406:	0000                	unimp
+    80003408:	0002                	c.slli64	zero
+    8000340a:	0000                	unimp
+    8000340c:	0002                	c.slli64	zero
+    8000340e:	0000                	unimp
+    80003410:	0001                	nop
+    80003412:	0000                	unimp
+    80003414:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003418:	0000                	unimp
+    8000341a:	0000                	unimp
+    8000341c:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003420:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003424:	0001                	nop
+    80003426:	0000                	unimp
+    80003428:	0000                	unimp
+    8000342a:	0000                	unimp
+    8000342c:	0000                	unimp
+    8000342e:	0000                	unimp
+    80003430:	00000003          	lb	zero,0(zero) # 0 <threadsense.3>
+    80003434:	0002                	c.slli64	zero
+    80003436:	0000                	unimp
+
+0000000080003438 <verify_data>:
+    80003438:	0024                	addi	s1,sp,8
+    8000343a:	0000                	unimp
+    8000343c:	002c                	addi	a1,sp,8
+    8000343e:	0000                	unimp
+    80003440:	0039                	c.nop	14
+    80003442:	0000                	unimp
+    80003444:	0032                	c.slli	zero,0xc
+    80003446:	0000                	unimp
+    80003448:	0036                	c.slli	zero,0xd
+    8000344a:	0000                	unimp
+    8000344c:	0024                	addi	s1,sp,8
+    8000344e:	0000                	unimp
+    80003450:	0026                	c.slli	zero,0x9
+    80003452:	0000                	unimp
+    80003454:	002e                	c.slli	zero,0xb
+    80003456:	0000                	unimp
+    80003458:	00000037          	lui	zero,0x0
+    8000345c:	0019                	c.nop	6
+    8000345e:	0000                	unimp
+    80003460:	0026                	c.slli	zero,0x9
+    80003462:	0000                	unimp
+    80003464:	0022                	c.slli	zero,0x8
+    80003466:	0000                	unimp
+    80003468:	00000033          	add	zero,zero,zero
+    8000346c:	001e                	c.slli	zero,0x7
+    8000346e:	0000                	unimp
+    80003470:	0028                	addi	a0,sp,8
+    80003472:	0000                	unimp
+    80003474:	0020                	addi	s0,sp,8
+    80003476:	0000                	unimp
+    80003478:	0025                	c.nop	9
+    8000347a:	0000                	unimp
+    8000347c:	0022                	c.slli	zero,0x8
+    8000347e:	0000                	unimp
+    80003480:	0026                	c.slli	zero,0x9
+    80003482:	0000                	unimp
+    80003484:	0034                	addi	a3,sp,8
+    80003486:	0000                	unimp
+    80003488:	00000033          	add	zero,zero,zero
+    8000348c:	0028                	addi	a0,sp,8
+    8000348e:	0000                	unimp
+    80003490:	001c                	.insn	2, 0x001c
+    80003492:	0000                	unimp
+    80003494:	0020                	addi	s0,sp,8
+    80003496:	0000                	unimp
+    80003498:	0029                	c.nop	10
+    8000349a:	0000                	unimp
+    8000349c:	0016                	c.slli	zero,0x5
+    8000349e:	0000                	unimp
+    800034a0:	001a                	c.slli	zero,0x6
+    800034a2:	0000                	unimp
+    800034a4:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    800034a8:	0031                	c.nop	12
+    800034aa:	0000                	unimp
+    800034ac:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    800034b0:	002a                	c.slli	zero,0xa
+    800034b2:	0000                	unimp
+    800034b4:	00000017          	auipc	zero,0x0
+    800034b8:	001a                	c.slli	zero,0x6
+    800034ba:	0000                	unimp
+    800034bc:	001a                	c.slli	zero,0x6
+    800034be:	0000                	unimp
+    800034c0:	0021                	c.nop	8
+    800034c2:	0000                	unimp
+    800034c4:	0024                	addi	s1,sp,8
+    800034c6:	0000                	unimp
+    800034c8:	0034                	addi	a3,sp,8
+    800034ca:	0000                	unimp
+    800034cc:	0028                	addi	a0,sp,8
+    800034ce:	0000                	unimp
+    800034d0:	002d                	c.nop	11
+    800034d2:	0000                	unimp
+    800034d4:	0031                	c.nop	12
+    800034d6:	0000                	unimp
+    800034d8:	0032                	c.slli	zero,0xc
+    800034da:	0000                	unimp
+    800034dc:	0022                	c.slli	zero,0x8
+    800034de:	0000                	unimp
+    800034e0:	0029                	c.nop	10
+    800034e2:	0000                	unimp
+    800034e4:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    800034e8:	002c                	addi	a1,sp,8
+    800034ea:	0000                	unimp
+    800034ec:	0019                	c.nop	6
+    800034ee:	0000                	unimp
+    800034f0:	00000017          	auipc	zero,0x0
+    800034f4:	00000017          	auipc	zero,0x0
+    800034f8:	001f 0000 001d      	.insn	6, 0x001d0000001f
+    800034fe:	0000                	unimp
+    80003500:	00000027          	.insn	4, 0x0027
+    80003504:	002e                	c.slli	zero,0xb
+    80003506:	0000                	unimp
+    80003508:	0032                	c.slli	zero,0xc
+    8000350a:	0000                	unimp
+    8000350c:	0024                	addi	s1,sp,8
+    8000350e:	0000                	unimp
+    80003510:	001f 0000 0020      	.insn	6, 0x00200000001f
+    80003516:	0000                	unimp
+    80003518:	002a                	c.slli	zero,0xa
+    8000351a:	0000                	unimp
+    8000351c:	0020                	addi	s0,sp,8
+    8000351e:	0000                	unimp
+    80003520:	0022                	c.slli	zero,0x8
+    80003522:	0000                	unimp
+    80003524:	0029                	c.nop	10
+    80003526:	0000                	unimp
+    80003528:	002c                	addi	a1,sp,8
+    8000352a:	0000                	unimp
+    8000352c:	0021                	c.nop	8
+    8000352e:	0000                	unimp
+    80003530:	0000002b          	.insn	4, 0x002b
+    80003534:	001e                	c.slli	zero,0x7
+    80003536:	0000                	unimp
+    80003538:	001f 0000 001c      	.insn	6, 0x001c0000001f
+    8000353e:	0000                	unimp
+    80003540:	00000027          	.insn	4, 0x0027
+    80003544:	002e                	c.slli	zero,0xb
+    80003546:	0000                	unimp
+    80003548:	0032                	c.slli	zero,0xc
+    8000354a:	0000                	unimp
+    8000354c:	0028                	addi	a0,sp,8
+    8000354e:	0000                	unimp
+    80003550:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    80003554:	0025                	c.nop	9
+    80003556:	0000                	unimp
+    80003558:	0000002b          	.insn	4, 0x002b
+    8000355c:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    80003560:	0021                	c.nop	8
+    80003562:	0000                	unimp
+    80003564:	0000002b          	.insn	4, 0x002b
+    80003568:	0000002b          	.insn	4, 0x002b
+    8000356c:	001d                	c.nop	7
+    8000356e:	0000                	unimp
+    80003570:	0025                	c.nop	9
+    80003572:	0000                	unimp
+    80003574:	001d                	c.nop	7
+    80003576:	0000                	unimp
+    80003578:	0000001b          	sext.w	zero,zero
+    8000357c:	0016                	c.slli	zero,0x5
+    8000357e:	0000                	unimp
+    80003580:	001e                	c.slli	zero,0x7
+    80003582:	0000                	unimp
+    80003584:	0021                	c.nop	8
+    80003586:	0000                	unimp
+    80003588:	0000002b          	.insn	4, 0x002b
+    8000358c:	001f 0000 0020      	.insn	6, 0x00200000001f
+    80003592:	0000                	unimp
+    80003594:	0019                	c.nop	6
+    80003596:	0000                	unimp
+    80003598:	0024                	addi	s1,sp,8
+    8000359a:	0000                	unimp
+    8000359c:	001f 0000 001f      	.insn	6, 0x001f0000001f
+    800035a2:	0000                	unimp
+    800035a4:	001d                	c.nop	7
+    800035a6:	0000                	unimp
+    800035a8:	0028                	addi	a0,sp,8
+    800035aa:	0000                	unimp
+    800035ac:	001c                	.insn	2, 0x001c
+    800035ae:	0000                	unimp
+    800035b0:	001a                	c.slli	zero,0x6
+    800035b2:	0000                	unimp
+    800035b4:	0016                	c.slli	zero,0x5
+    800035b6:	0000                	unimp
+    800035b8:	001d                	c.nop	7
+    800035ba:	0000                	unimp
+    800035bc:	002a                	c.slli	zero,0xa
+    800035be:	0000                	unimp
+    800035c0:	0030                	addi	a2,sp,8
+    800035c2:	0000                	unimp
+    800035c4:	00000033          	add	zero,zero,zero
+    800035c8:	0041                	c.nop	16
+    800035ca:	0000                	unimp
+    800035cc:	0034                	addi	a3,sp,8
+    800035ce:	0000                	unimp
+    800035d0:	0000002b          	.insn	4, 0x002b
+    800035d4:	0036                	c.slli	zero,0xd
+    800035d6:	0000                	unimp
+    800035d8:	0000003f 00000022 	.insn	8, 0x00220000003f
+    800035e0:	002a                	c.slli	zero,0xa
+    800035e2:	0000                	unimp
+    800035e4:	002c                	addi	a1,sp,8
+    800035e6:	0000                	unimp
+    800035e8:	0038                	addi	a4,sp,8
+    800035ea:	0000                	unimp
+    800035ec:	0021                	c.nop	8
+    800035ee:	0000                	unimp
+    800035f0:	0026                	c.slli	zero,0x9
+    800035f2:	0000                	unimp
+    800035f4:	0020                	addi	s0,sp,8
+    800035f6:	0000                	unimp
+    800035f8:	001a                	c.slli	zero,0x6
+    800035fa:	0000                	unimp
+    800035fc:	0016                	c.slli	zero,0x5
+    800035fe:	0000                	unimp
+    80003600:	00000017          	auipc	zero,0x0
+    80003604:	0026                	c.slli	zero,0x9
+    80003606:	0000                	unimp
+    80003608:	0031                	c.nop	12
+    8000360a:	0000                	unimp
+    8000360c:	0020                	addi	s0,sp,8
+    8000360e:	0000                	unimp
+    80003610:	001a                	c.slli	zero,0x6
+    80003612:	0000                	unimp
+    80003614:	001e                	c.slli	zero,0x7
+    80003616:	0000                	unimp
+    80003618:	0000002b          	.insn	4, 0x002b
+    8000361c:	0016                	c.slli	zero,0x5
+    8000361e:	0000                	unimp
+    80003620:	0018                	.insn	2, 0x0018
+    80003622:	0000                	unimp
+    80003624:	0000001b          	sext.w	zero,zero
+    80003628:	002d                	c.nop	11
+    8000362a:	0000                	unimp
+    8000362c:	0018                	.insn	2, 0x0018
+    8000362e:	0000                	unimp
+    80003630:	001a                	c.slli	zero,0x6
+    80003632:	0000                	unimp
+    80003634:	0011                	c.nop	4
+    80003636:	0000                	unimp
+    80003638:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    8000363c:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    80003640:	0000002f          	.insn	4, 0x002f
+    80003644:	00000033          	add	zero,zero,zero
+    80003648:	0000003b          	addw	zero,zero,zero
+    8000364c:	0000003b          	addw	zero,zero,zero
+    80003650:	0000002b          	.insn	4, 0x002b
+    80003654:	002a                	c.slli	zero,0xa
+    80003656:	0000                	unimp
+    80003658:	0000002b          	.insn	4, 0x002b
+    8000365c:	001c                	.insn	2, 0x001c
+    8000365e:	0000                	unimp
+    80003660:	0025                	c.nop	9
+    80003662:	0000                	unimp
+    80003664:	0000002b          	.insn	4, 0x002b
+    80003668:	0038                	addi	a4,sp,8
+    8000366a:	0000                	unimp
+    8000366c:	0030                	addi	a2,sp,8
+    8000366e:	0000                	unimp
+    80003670:	0024                	addi	s1,sp,8
+    80003672:	0000                	unimp
+    80003674:	0020                	addi	s0,sp,8
+    80003676:	0000                	unimp
+    80003678:	001c                	.insn	2, 0x001c
+    8000367a:	0000                	unimp
+    8000367c:	00000013          	nop
+    80003680:	001c                	.insn	2, 0x001c
+    80003682:	0000                	unimp
+    80003684:	0022                	c.slli	zero,0x8
+    80003686:	0000                	unimp
+    80003688:	002e                	c.slli	zero,0xb
+    8000368a:	0000                	unimp
+    8000368c:	0022                	c.slli	zero,0x8
+    8000368e:	0000                	unimp
+    80003690:	001c                	.insn	2, 0x001c
+    80003692:	0000                	unimp
+    80003694:	0022                	c.slli	zero,0x8
+    80003696:	0000                	unimp
+    80003698:	002d                	c.nop	11
+    8000369a:	0000                	unimp
+    8000369c:	0014                	.insn	2, 0x0014
+    8000369e:	0000                	unimp
+    800036a0:	001d                	c.nop	7
+    800036a2:	0000                	unimp
+    800036a4:	001c                	.insn	2, 0x001c
+    800036a6:	0000                	unimp
+    800036a8:	0032                	c.slli	zero,0xc
+    800036aa:	0000                	unimp
+    800036ac:	0020                	addi	s0,sp,8
+    800036ae:	0000                	unimp
+    800036b0:	001a                	c.slli	zero,0x6
+    800036b2:	0000                	unimp
+    800036b4:	0015                	c.nop	5
+    800036b6:	0000                	unimp
+    800036b8:	0025                	c.nop	9
+    800036ba:	0000                	unimp
+    800036bc:	0026                	c.slli	zero,0x9
+    800036be:	0000                	unimp
+    800036c0:	00000033          	add	zero,zero,zero
+    800036c4:	0032                	c.slli	zero,0xc
+    800036c6:	0000                	unimp
+    800036c8:	00000037          	lui	zero,0x0
+    800036cc:	002d                	c.nop	11
+    800036ce:	0000                	unimp
+    800036d0:	0026                	c.slli	zero,0x9
+    800036d2:	0000                	unimp
+    800036d4:	0031                	c.nop	12
+    800036d6:	0000                	unimp
+    800036d8:	0038                	addi	a4,sp,8
+    800036da:	0000                	unimp
+    800036dc:	001c                	.insn	2, 0x001c
+    800036de:	0000                	unimp
+    800036e0:	0026                	c.slli	zero,0x9
+    800036e2:	0000                	unimp
+    800036e4:	0028                	addi	a0,sp,8
+    800036e6:	0000                	unimp
+    800036e8:	0032                	c.slli	zero,0xc
+    800036ea:	0000                	unimp
+    800036ec:	001d                	c.nop	7
+    800036ee:	0000                	unimp
+    800036f0:	002c                	addi	a1,sp,8
+    800036f2:	0000                	unimp
+    800036f4:	001a                	c.slli	zero,0x6
+    800036f6:	0000                	unimp
+    800036f8:	0020                	addi	s0,sp,8
+    800036fa:	0000                	unimp
+    800036fc:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    80003700:	0032                	c.slli	zero,0xc
+    80003702:	0000                	unimp
+    80003704:	0000002b          	.insn	4, 0x002b
+    80003708:	0035                	c.nop	13
+    8000370a:	0000                	unimp
+    8000370c:	002c                	addi	a1,sp,8
+    8000370e:	0000                	unimp
+    80003710:	0029                	c.nop	10
+    80003712:	0000                	unimp
+    80003714:	0029                	c.nop	10
+    80003716:	0000                	unimp
+    80003718:	0022                	c.slli	zero,0x8
+    8000371a:	0000                	unimp
+    8000371c:	0018                	.insn	2, 0x0018
+    8000371e:	0000                	unimp
+    80003720:	00000023          	sb	zero,0(zero) # 0 <threadsense.3>
+    80003724:	0022                	c.slli	zero,0x8
+    80003726:	0000                	unimp
+    80003728:	00000027          	.insn	4, 0x0027
+    8000372c:	0021                	c.nop	8
+    8000372e:	0000                	unimp
+    80003730:	0022                	c.slli	zero,0x8
+    80003732:	0000                	unimp
+    80003734:	001d                	c.nop	7
+    80003736:	0000                	unimp
+    80003738:	0015                	c.nop	5
+    8000373a:	0000                	unimp
+    8000373c:	0021                	c.nop	8
+    8000373e:	0000                	unimp
+    80003740:	001f 0000 002d      	.insn	6, 0x002d0000001f
+    80003746:	0000                	unimp
+    80003748:	0030                	addi	a2,sp,8
+    8000374a:	0000                	unimp
+    8000374c:	002a                	c.slli	zero,0xa
+    8000374e:	0000                	unimp
+    80003750:	0000001b          	sext.w	zero,zero
+    80003754:	001d                	c.nop	7
+    80003756:	0000                	unimp
+    80003758:	0028                	addi	a0,sp,8
+    8000375a:	0000                	unimp
+    8000375c:	0011                	c.nop	4
+    8000375e:	0000                	unimp
+    80003760:	0015                	c.nop	5
+    80003762:	0000                	unimp
+    80003764:	0020                	addi	s0,sp,8
+    80003766:	0000                	unimp
+    80003768:	002d                	c.nop	11
+    8000376a:	0000                	unimp
+    8000376c:	001e                	c.slli	zero,0x7
+    8000376e:	0000                	unimp
+    80003770:	001d                	c.nop	7
+    80003772:	0000                	unimp
+    80003774:	001a                	c.slli	zero,0x6
+    80003776:	0000                	unimp
+    80003778:	001a                	c.slli	zero,0x6
+    8000377a:	0000                	unimp
+    8000377c:	0000001b          	sext.w	zero,zero
+    80003780:	0026                	c.slli	zero,0x9
+    80003782:	0000                	unimp
+    80003784:	0021                	c.nop	8
+    80003786:	0000                	unimp
+    80003788:	001d                	c.nop	7
+    8000378a:	0000                	unimp
+    8000378c:	001f 0000 0020      	.insn	6, 0x00200000001f
+    80003792:	0000                	unimp
+    80003794:	001f 0000 0023      	.insn	6, 0x00230000001f
+    8000379a:	0000                	unimp
+    8000379c:	0019                	c.nop	6
+    8000379e:	0000                	unimp
+    800037a0:	001d                	c.nop	7
+    800037a2:	0000                	unimp
+    800037a4:	001d                	c.nop	7
+    800037a6:	0000                	unimp
+    800037a8:	0022                	c.slli	zero,0x8
+    800037aa:	0000                	unimp
+    800037ac:	0000000f          	fence	unknown,unknown
+    800037b0:	0019                	c.nop	6
+    800037b2:	0000                	unimp
+    800037b4:	00000017          	auipc	zero,0x0
+    800037b8:	0022                	c.slli	zero,0x8
+    800037ba:	0000                	unimp
+    800037bc:	001c                	.insn	2, 0x001c
+    800037be:	0000                	unimp
+    800037c0:	002c                	addi	a1,sp,8
+    800037c2:	0000                	unimp
+    800037c4:	002d                	c.nop	11
+    800037c6:	0000                	unimp
+    800037c8:	0029                	c.nop	10
+    800037ca:	0000                	unimp
+    800037cc:	0029                	c.nop	10
+    800037ce:	0000                	unimp
+    800037d0:	0025                	c.nop	9
+    800037d2:	0000                	unimp
+    800037d4:	002d                	c.nop	11
+    800037d6:	0000                	unimp
+    800037d8:	002d                	c.nop	11
+    800037da:	0000                	unimp
+    800037dc:	0011                	c.nop	4
+    800037de:	0000                	unimp
+    800037e0:	0022                	c.slli	zero,0x8
+    800037e2:	0000                	unimp
+    800037e4:	002c                	addi	a1,sp,8
+    800037e6:	0000                	unimp
+    800037e8:	002e                	c.slli	zero,0xb
+    800037ea:	0000                	unimp
+    800037ec:	001e                	c.slli	zero,0x7
+    800037ee:	0000                	unimp
+    800037f0:	0000002b          	.insn	4, 0x002b
+    800037f4:	001d                	c.nop	7
+    800037f6:	0000                	unimp
+    800037f8:	001f 0000 0024      	.insn	6, 0x00240000001f
+    800037fe:	0000                	unimp
+    80003800:	0025                	c.nop	9
+    80003802:	0000                	unimp
+    80003804:	0032                	c.slli	zero,0xc
+    80003806:	0000                	unimp
+    80003808:	0036                	c.slli	zero,0xd
+    8000380a:	0000                	unimp
+    8000380c:	002c                	addi	a1,sp,8
+    8000380e:	0000                	unimp
+    80003810:	001c                	.insn	2, 0x001c
+    80003812:	0000                	unimp
+    80003814:	0028                	addi	a0,sp,8
+    80003816:	0000                	unimp
+    80003818:	0026                	c.slli	zero,0x9
+    8000381a:	0000                	unimp
+    8000381c:	0016                	c.slli	zero,0x5
+    8000381e:	0000                	unimp
+    80003820:	0000001b          	sext.w	zero,zero
+    80003824:	001c                	.insn	2, 0x001c
+    80003826:	0000                	unimp
+    80003828:	002d                	c.nop	11
+    8000382a:	0000                	unimp
+    8000382c:	0020                	addi	s0,sp,8
+    8000382e:	0000                	unimp
+    80003830:	0024                	addi	s1,sp,8
+    80003832:	0000                	unimp
+    80003834:	0016                	c.slli	zero,0x5
+    80003836:	0000                	unimp

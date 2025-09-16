@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint8_t* read_file_binary(const char* path, size_t* out_size) {
+uint8_t* load_binary(const char* path, size_t* out_size) {
     FILE* f = fopen(path, "rb");
     if (!f) return NULL;
 
