@@ -56,9 +56,9 @@ if __name__ == "__main__":
                 instr_table.append((mask, match, name.replace(".", "_")))
 
     with open("table.c", "w") as f:
-        f.write('// --------------------------------------------\n')
-        f.write(f'// This file is auto-generated. ({datetime.now().strftime("%Y-%m-%d %H")})\n\n')
-        f.write('// --------------------------------------------\n\n')
+        f.write('// -----------------------------------------\n')
+        f.write(f'// This file is auto-generated. ({datetime.now().strftime("%Y-%m-%d")})\n')
+        f.write('// -----------------------------------------\n\n')
         f.write('#include "table.h"\n')
         f.write('#include "../cpu.h"\n\n')
         for _, _, name in instr_table:

@@ -18,7 +18,7 @@ uint8_t* load_binary(const char* path, size_t* out_size) {
     }
 
     fread(buffer, 1, size, f);
-    buffer[size] = '\0';
+    // buffer[size] = '\0';
     fclose(f);
 
     if (out_size)
@@ -27,7 +27,7 @@ uint8_t* load_binary(const char* path, size_t* out_size) {
     return buffer;
 }
 
-uint64_t umul128(uint64_t a, uint64_t b, uint64_t* hi_result) {
+uint64_t mulu128(uint64_t a, uint64_t b, uint64_t* hi_result) {
     uint64_t a_lo = a & 0xFFFFFFFFULL;
     uint64_t a_hi = a >> 32;
     uint64_t b_lo = b & 0xFFFFFFFFULL;
@@ -50,8 +50,8 @@ uint64_t umul128(uint64_t a, uint64_t b, uint64_t* hi_result) {
 
 int64_t mul128(int64_t a, int64_t b, int64_t* hi_result) {
     uint64_t hi;
-    uint64_t lo = umul128((uint64_t)a, (uint64_t)b, &hi);
-    
+    uint64_t lo = mulu128((uint64_t)a, (uint64_t)b, &hi);
+
     if (a < 0) hi -= (uint64_t)b;
     if (b < 0) hi -= (uint64_t)a;
     
@@ -61,7 +61,7 @@ int64_t mul128(int64_t a, int64_t b, int64_t* hi_result) {
 
 uint64_t mulsu128(int64_t a, uint64_t b, int64_t* hi_result) {
     uint64_t hi;
-    uint64_t lo = umul128((uint64_t)a, b, &hi);
+    uint64_t lo = mulu128((uint64_t)a, b, &hi);
     
     // Adjust only for signed a
     if (a < 0) hi -= b;

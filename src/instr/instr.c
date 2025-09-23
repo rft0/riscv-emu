@@ -1,22 +1,20 @@
 #include "../cpu.h"
 #include "../helpers.h"
 
-#ifdef _MSC_VER
-#include <intrin.h>
-#endif
-
 #define _RD             extract32(instr, 11, 7)
 #define _RS1            extract32(instr, 19, 15)
 #define _RS2            extract32(instr, 24, 20)
 
 #define PC              (cpu->pc)
+#define NPC             (cpu->npc)
 
 #define RD              (cpu->x[_RD])
 #define RS1             (cpu->x[_RS1])
 #define RS2             (cpu->x[_RS2])
 
-#define SET_RD(val) do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
+#define SET_RD(val)     do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
 #define SET_PC(val)     (cpu->pc = (val))
+#define SET_NPC(val)    (cpu->npc = (val))
 
 #define IMM_I           sext(extract32(instr, 31, 20), 12)
 #define IMM_S           sext((extract32(instr, 31, 25) << 5) | extract32(instr, 11, 7), 12)
@@ -164,6 +162,7 @@ void exec_sfence_vma(cpu_t* cpu, uint32_t instr) {
 
 void exec_lb(cpu_t* cpu, uint32_t instr) {
     //! TODO: YET TO BE IMPLEMENTED
+    SET_RD(mem_read8(cpu, RS1 + IMM_I));
 }
 
 void exec_lh(cpu_t* cpu, uint32_t instr) {
@@ -196,46 +195,46 @@ void exec_sw(cpu_t* cpu, uint32_t instr) {
 
 void exec_jal(cpu_t* cpu, uint32_t instr) {
     SET_RD(PC + 4);
-    SET_PC(PC + IMM_J);
+    SET_NPC(PC + IMM_J);
 }
 
 void exec_jalr(cpu_t* cpu, uint32_t instr) {
     SET_RD(PC + 4);
-    SET_PC((RS1 + IMM_I) & ~1);
+    SET_NPC((RS1 + IMM_I) & ~1);
 }
 
 void exec_beq(cpu_t* cpu, uint32_t instr) {
     if (RS1 == RS2)
-        SET_PC(PC + IMM_B);
+        SET_NPC(PC + IMM_B);
 }
 
 void exec_bne(cpu_t* cpu, uint32_t instr) {
     if (RS1 != RS2)
-        SET_PC(PC + IMM_B);
+        SET_NPC(PC + IMM_B);
 }
 
 void exec_blt(cpu_t* cpu, uint32_t instr) {
     if ((int64_t)RS1 < (int64_t)RS2)
-        SET_PC(PC + IMM_B);
+        SET_NPC(PC + IMM_B);
 }
 
 void exec_bge(cpu_t* cpu, uint32_t instr) {
     if ((int64_t)RS1 >= (int64_t)RS2)
-        SET_PC(PC + IMM_B);
+        SET_NPC(PC + IMM_B);
 }
 
 void exec_bltu(cpu_t* cpu, uint32_t instr) {
     if (RS1 < RS2)
-        SET_PC(PC + IMM_B);
+        SET_NPC(PC + IMM_B);
 }
 
 void exec_bgeu(cpu_t* cpu, uint32_t instr) {
     if (RS1 >= RS2)
-        SET_PC(PC + IMM_B);
+        SET_NPC(PC + IMM_B);
 }
 void exec_addiw(cpu_t* cpu, uint32_t instr) {
-    // int32_t -> uint64_t is sign-extended automatically
-    // So let's cast explicitly
+    // int32_t -> uint64_t is sign-extended implicitly?
+    // but anyway let's cast it explicitly
     SET_RD((int64_t)(int32_t)(RS1 + IMM_I));
 }
 
@@ -298,7 +297,7 @@ void exec_mulhsu(cpu_t* cpu, uint32_t instr) {
 
 void exec_mulhu(cpu_t* cpu, uint32_t instr) {
     uint64_t hi;
-    umul128(RS1, RS2, &hi);
+    mulu128(RS1, RS2, &hi);
     SET_RD(hi);
 }
 
@@ -362,6 +361,16 @@ void exec_divw(cpu_t* cpu, uint32_t instr) {
         SET_RD((int64_t)(int32_t)(dividend / divisor));
 }
 
+void exec_divuw(cpu_t* cpu, uint32_t instr) {
+    uint32_t dividend = (uint32_t)RS1;
+    uint32_t divisor = (uint32_t)RS2;
+    
+    if (divisor == 0)
+        SET_RD(UINT32_MAX);
+    else
+        SET_RD((int64_t)(uint32_t)(dividend / divisor));
+}
+
 void exec_remw(cpu_t* cpu, uint32_t instr) {
     int32_t dividend = (int32_t)RS1;
     int32_t divisor = (int32_t)RS2;
@@ -372,4 +381,14 @@ void exec_remw(cpu_t* cpu, uint32_t instr) {
         SET_RD(0);
     else
         SET_RD((int64_t)(int32_t)(dividend % divisor));
+}
+
+void exec_remuw(cpu_t* cpu, uint32_t instr) {
+    uint32_t dividend = (uint32_t)RS1;
+    uint32_t divisor = (uint32_t)RS2;
+    
+    if (divisor == 0)
+        SET_RD((int64_t)dividend);
+    else
+        SET_RD((int64_t)(uint32_t)(dividend % divisor));
 }

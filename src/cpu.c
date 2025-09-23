@@ -4,19 +4,18 @@
 #include <stdio.h>
 
 void cpu_step(cpu_t* cpu) {
-    if (cpu->halted) return;
+    uint32_t instr = *((uint32_t*)(cpu->mem + cpu->pc));
+    printf("PC: 0x%llx, Instruction: 0x%08x\n", cpu->pc, instr);
 
-    uint32_t instr = *((uint32_t*)(cpu->mem[0] + cpu->pc));
+    cpu->npc = cpu->pc + 4;
 
     for (int i = 0; i < instr_table_size; i++) {
-        if ((instr & instr_dispatch_table[i].mask) != instr_dispatch_table[i].match) {
-            instr_dispatch_table[i].func(cpu, instr);
-            cpu->pc += 4;
+        if ((instr & instr_table[i].mask) == instr_table[i].match) {
+            instr_table[i].func(cpu, instr);
+            cpu->pc = cpu->npc;
             return;
         }
     }
 
-    // If we reach here, the instruction is illegal
-    printf("Illegal instruction at PC=0x%lx: 0x%08x\n", cpu->pc - 4, instr);
-    cpu->halted = 1;
+    printf("Illegal instruction at PC=0x%llx: 0x%08x\n", cpu->pc - 4, instr);
 }
