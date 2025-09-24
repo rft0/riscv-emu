@@ -1,29 +1,38 @@
 #include "../cpu.h"
 #include "../helpers.h"
 
-#define _RD             extract32(instr, 11, 7)
-#define _RS1            extract32(instr, 19, 15)
-#define _RS2            extract32(instr, 24, 20)
+#include "csr.h"
 
-#define PC              (cpu->pc)
-#define NPC             (cpu->npc)
+#define _RD                 extract32(instr, 11, 7)
+#define _RS1                extract32(instr, 19, 15)
+#define _RS2                extract32(instr, 24, 20)
 
-#define RD              (cpu->x[_RD])
-#define RS1             (cpu->x[_RS1])
-#define RS2             (cpu->x[_RS2])
+#define PC                  (cpu->pc)
+#define NPC                 (cpu->npc)
 
-#define SET_RD(val)     do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
-#define SET_PC(val)     (cpu->pc = (val))
-#define SET_NPC(val)    (cpu->npc = (val))
+#define RD                  (cpu->x[_RD])
+#define RS1                 (cpu->x[_RS1])
+#define RS2                 (cpu->x[_RS2])
 
-#define IMM_I           sext(extract32(instr, 31, 20), 12)
-#define IMM_S           sext((extract32(instr, 31, 25) << 5) | extract32(instr, 11, 7), 12)
-#define IMM_B           sext((extract32(instr, 31, 31) << 12) | (extract32(instr, 7, 7) << 11) | (extract32(instr, 30, 25) << 5) | (extract32(instr, 11, 8) << 1), 13)
-#define IMM_U           (extract32(instr, 31, 12) << 12)
-#define IMM_J           sext((extract32(instr, 31, 31) << 20) | (extract32(instr, 19, 12) << 12) | (extract32(instr, 20, 20) << 11) | (extract32(instr, 30, 21) << 1), 21)
+#define SET_RD(val)         do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
+#define SET_PC(val)         (cpu->pc = (val))
+#define SET_NPC(val)        (cpu->npc = (val))
 
-#define SHAMTRV64       extract32(instr, 25, 20)
-#define SHAMT           extract32(instr, 24, 20)
+#define CSR(addr)           (cpu->csr[addr])
+#define SET_CSR(addr, val)  csr_write(cpu, addr, val)
+
+#define IMM_I               sext(extract32(instr, 31, 20), 12)
+#define IMM_S               sext((extract32(instr, 31, 25) << 5) | extract32(instr, 11, 7), 12)
+#define IMM_B               sext((extract32(instr, 31, 31) << 12) | (extract32(instr, 7, 7) << 11) | (extract32(instr, 30, 25) << 5) | (extract32(instr, 11, 8) << 1), 13)
+#define IMM_U               (extract32(instr, 31, 12) << 12)
+#define IMM_J               sext((extract32(instr, 31, 31) << 20) | (extract32(instr, 19, 12) << 12) | (extract32(instr, 20, 20) << 11) | (extract32(instr, 30, 21) << 1), 21)
+#define IMM_CSR             extract32(instr, 31, 20)
+
+#define SHAMTRV64           extract32(instr, 25, 20)
+#define SHAMT               extract32(instr, 24, 20)
+
+#define AMO_AQ              extract32(instr, 26, 26)
+#define AMO_RL              extract32(instr, 25, 25)
 
 void exec_lui(cpu_t* cpu, uint32_t instr) {
     SET_RD(IMM_U); // Yes IMM_U is zero extended
@@ -108,36 +117,53 @@ void exec_and(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fence(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    // Do nothing.
 }
 
 void exec_fence_i(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    // No icache, do nothing.
 }
 
 void exec_cssrw(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t addr = IMM_CSR;
+    SET_RD(CSR(addr));
+    SET_CSR(addr, RS1);
 }
 
 void exec_csrrs(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t addr = IMM_CSR;
+    uint64_t t = CSR(addr);
+    SET_RD(t);
+    SET_CSR(addr, t | RS1);
 }
 
 void exec_csrrc(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t addr = IMM_CSR;
+    uint64_t t = CSR(addr);
+    SET_RD(t);
+    SET_CSR(addr, t & ~RS1);
 }
 
 void exec_csrrwi(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t addr = IMM_CSR;
+    SET_RD(CSR(addr));
+    SET_CSR(addr, _RS1);
 }
 
 void exec_csrrsi(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t addr = IMM_CSR;
+    uint64_t t = CSR(addr);
+    SET_RD(t);
+    SET_CSR(addr, t | _RS1);
 }
 
 void exec_csrrci(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t addr = IMM_CSR;
+    uint64_t t = CSR(addr);
+    SET_RD(t);
+    SET_CSR(addr, t & ~_RS1);
 }
+
 void exec_ecall(cpu_t* cpu, uint32_t instr) {
     //! TODO: YET TO BE IMPLEMENTED
 }
@@ -162,7 +188,7 @@ void exec_sfence_vma(cpu_t* cpu, uint32_t instr) {
 
 void exec_lb(cpu_t* cpu, uint32_t instr) {
     //! TODO: YET TO BE IMPLEMENTED
-    SET_RD(mem_read8(cpu, RS1 + IMM_I));
+    // SET_RD(mem_read8(cpu, RS1 + IMM_I));
 }
 
 void exec_lh(cpu_t* cpu, uint32_t instr) {
@@ -391,4 +417,92 @@ void exec_remuw(cpu_t* cpu, uint32_t instr) {
         SET_RD((int64_t)dividend);
     else
         SET_RD((int64_t)(uint32_t)(dividend % divisor));
+}
+
+void exec_lr_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_sc_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoswap_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoadd_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoxor_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoand_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoor_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amomin_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amomax_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amominu_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amomaxu_w(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_lr_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_sc_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoswap_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoadd_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoxor_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoand_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amoor_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amomin_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amomax_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amominu_d(cpu_t* cpu, uint32_t instr) {
+
+}
+
+void exec_amomaxu_d(cpu_t* cpu, uint32_t instr) {
+
 }

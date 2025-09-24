@@ -1,6 +1,6 @@
-// --------------------------------------------
-// This file is auto-generated. (2025-09-16 16)
-// --------------------------------------------
+// -----------------------------------------
+// This file is auto-generated. (2025-09-24)
+// -----------------------------------------
 
 #include "table.h"
 #include "../cpu.h"
@@ -81,6 +81,28 @@ extern void exec_divw(cpu_t* cpu, uint32_t instr);
 extern void exec_divuw(cpu_t* cpu, uint32_t instr);
 extern void exec_remw(cpu_t* cpu, uint32_t instr);
 extern void exec_remuw(cpu_t* cpu, uint32_t instr);
+extern void exec_lr_w(cpu_t* cpu, uint32_t instr);
+extern void exec_sc_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amoswap_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amoadd_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amoxor_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amoand_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amoor_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amomin_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amomax_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amominu_w(cpu_t* cpu, uint32_t instr);
+extern void exec_amomaxu_w(cpu_t* cpu, uint32_t instr);
+extern void exec_lr_d(cpu_t* cpu, uint32_t instr);
+extern void exec_sc_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amoswap_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amoadd_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amoxor_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amoand_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amoor_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amomin_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amomax_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amominu_d(cpu_t* cpu, uint32_t instr);
+extern void exec_amomaxu_d(cpu_t* cpu, uint32_t instr);
 
 instr_entry_t instr_table[] = {
     {0x0000007F, 0x00000037, exec_lui},
@@ -159,6 +181,28 @@ instr_entry_t instr_table[] = {
     {0xFE00707F, 0x0200503B, exec_divuw},
     {0xFE00707F, 0x0200603B, exec_remw},
     {0xFE00707F, 0x0200703B, exec_remuw},
+    {0xF9F0707F, 0x1000202F, exec_lr_w},
+    {0xF800707F, 0x1800202F, exec_sc_w},
+    {0xF800707F, 0x0800202F, exec_amoswap_w},
+    {0xF800707F, 0x0000202F, exec_amoadd_w},
+    {0xF800707F, 0x2000202F, exec_amoxor_w},
+    {0xF800707F, 0x6000202F, exec_amoand_w},
+    {0xF800707F, 0x4000202F, exec_amoor_w},
+    {0xF800707F, 0x8000202F, exec_amomin_w},
+    {0xF800707F, 0xA000202F, exec_amomax_w},
+    {0xF800707F, 0xC000202F, exec_amominu_w},
+    {0xF800707F, 0xE000202F, exec_amomaxu_w},
+    {0xF9F0707F, 0x1000302F, exec_lr_d},
+    {0xF800707F, 0x1800302F, exec_sc_d},
+    {0xF800707F, 0x0800302F, exec_amoswap_d},
+    {0xF800707F, 0x0000302F, exec_amoadd_d},
+    {0xF800707F, 0x2000302F, exec_amoxor_d},
+    {0xF800707F, 0x6000302F, exec_amoand_d},
+    {0xF800707F, 0x4000302F, exec_amoor_d},
+    {0xF800707F, 0x8000302F, exec_amomin_d},
+    {0xF800707F, 0xA000302F, exec_amomax_d},
+    {0xF800707F, 0xC000302F, exec_amominu_d},
+    {0xF800707F, 0xE000302F, exec_amomaxu_d},
 };
 
 const size_t instr_table_size = sizeof(instr_table) / sizeof(instr_entry_t);
