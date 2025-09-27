@@ -119,6 +119,10 @@ void exec_fence(cpu_t* cpu, uint32_t instr) {
     // Do nothing.
 }
 
+void exec_fence_tso(cpu_t* cpu, uint32_t instr) {
+    // Do nothing.
+}
+
 void exec_fence_i(cpu_t* cpu, uint32_t instr) {
     // No icache, do nothing.
 }

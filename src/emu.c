@@ -31,8 +31,9 @@ emu_t* emu_new() {
 }
 
 void emu_run(emu_t* emu) {
-    while (!emu->cpu.halted)
+    while (!emu->cpu.halted) {
         cpu_step(&emu->cpu);
+    }
 }
 
 void emu_free(emu_t* emulator) {

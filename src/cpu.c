@@ -1,7 +1,5 @@
 #include "cpu.h"
 
-// #include <stdio.h>
-
 #include "instr/table.h"
 #include "instr/trap.h"
 #include "instr/mem.h"
