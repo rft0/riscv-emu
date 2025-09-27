@@ -1,7 +1,9 @@
 #include "../cpu.h"
 #include "../helpers.h"
 
+#include "trap.h"
 #include "csr.h"
+#include "mem.h"
 
 #define _RD                 extract32(instr, 11, 7)
 #define _RS1                extract32(instr, 19, 15)
@@ -17,9 +19,6 @@
 #define SET_RD(val)         do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
 #define SET_PC(val)         (cpu->pc = (val))
 #define SET_NPC(val)        (cpu->npc = (val))
-
-#define CSR(addr)           (cpu->csr[addr])
-#define SET_CSR(addr, val)  csr_write(cpu, addr, val)
 
 #define IMM_I               sext(extract32(instr, 31, 20), 12)
 #define IMM_S               sext((extract32(instr, 31, 25) << 5) | extract32(instr, 11, 7), 12)
@@ -126,60 +125,132 @@ void exec_fence_i(cpu_t* cpu, uint32_t instr) {
 
 void exec_cssrw(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    SET_RD(CSR(addr));
-    SET_CSR(addr, RS1);
+    uint64_t value;
+    if(!csr_read(cpu, addr, &value))
+        return;
+
+    SET_RD(value);
+    csr_write(cpu, addr, RS1);
 }
 
 void exec_csrrs(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t = CSR(addr);
+    uint64_t t;
+    if (!csr_read(cpu, addr, &t))
+        return;
+
     SET_RD(t);
-    SET_CSR(addr, t | RS1);
+    csr_write(cpu, addr, t | RS1);
 }
 
 void exec_csrrc(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t = CSR(addr);
+    uint64_t t;
+    if (!csr_read(cpu, addr, &t))
+        return;
+
     SET_RD(t);
-    SET_CSR(addr, t & ~RS1);
+    csr_write(cpu, addr, t & ~RS1);
 }
 
 void exec_csrrwi(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    SET_RD(CSR(addr));
-    SET_CSR(addr, _RS1);
+    uint64_t val;
+    if(!csr_read(cpu, addr, &val))
+        return;
+
+    SET_RD(val);
+    csr_write(cpu, addr, _RS1);
 }
 
 void exec_csrrsi(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t = CSR(addr);
+    uint64_t t;
+    if (!csr_read(cpu, addr, &t))
+        return;
+
     SET_RD(t);
-    SET_CSR(addr, t | _RS1);
+    csr_write(cpu, addr, t | _RS1);
 }
 
 void exec_csrrci(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t = CSR(addr);
+    uint64_t t;
+    if (!csr_read(cpu, addr, &t))
+        return;
+
     SET_RD(t);
-    SET_CSR(addr, t & ~_RS1);
+    csr_write(cpu, addr, t & ~_RS1);
 }
 
 void exec_ecall(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint64_t cause;
+    switch (cpu->mode) {
+        case PRIV_U: cause = 8; break;
+        case PRIV_S: cause = 9; break;
+        case PRIV_M: cause = 11; break;
+        default: cause = 11; break;
+    }
+
+    raise_trap(cpu, cause, PC, 0);
 }
 
 void exec_ebreak(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    raise_trap(cpu, 3, PC, 0);
 }
+
 void exec_sret(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint64_t sepc;
+    if (!csr_read(cpu, CSR_SEPC, &sepc))
+        return;
+
+    uint64_t sstatus;
+    if (!csr_read(cpu, CSR_SSTATUS, &sstatus))
+        return;
+
+    uint64_t spp = (sstatus >> 8) & 1;
+    uint64_t spie = (sstatus >> 5) & 1;
+
+    // set PC
+    cpu->pc = sepc;
+
+    // restore priv
+    cpu->mode = spp ? PRIV_S : PRIV_U;
+
+    // update sstatus
+    sstatus = (sstatus & ~0x100UL) | (0UL << 8);   // SPP=U
+    sstatus = (sstatus & ~0x2UL) | (spie << 1);    // SIE=SPIE
+    sstatus |= (1UL << 5);                         // SPIE=1
+
+    csr_write(cpu, CSR_SSTATUS, sstatus);
 }
+
 void exec_mret(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint64_t mepc;
+    if (!csr_read(cpu, CSR_MEPC, &mepc))
+        return;
+
+    uint64_t mstatus;
+    if (!csr_read(cpu, CSR_MSTATUS, &mstatus))
+        return;
+
+    uint64_t mpp = (mstatus >> 11) & 3;
+    uint64_t mpie = (mstatus >> 7) & 1;
+
+    cpu->pc = mepc;
+    cpu->mode = mpp; // 0=U,1=S,3=M
+
+    // update mstatus
+    mstatus = (mstatus & ~(3UL << 11));          // MPP=U
+    mstatus = (mstatus & ~0x8UL) | (mpie << 3);  // MIE=MPIE
+    mstatus |= (1UL << 7);                       // MPIE=1
+
+    csr_write(cpu, CSR_MSTATUS, mstatus);
 }
 
 void exec_wfi(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    //! TODO: Stall until interrupt pending.
+    // For now, just do nothing.
 }
 
 void exec_sfence_vma(cpu_t* cpu, uint32_t instr) {
@@ -187,36 +258,55 @@ void exec_sfence_vma(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_lb(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
-    // SET_RD(mem_read8(cpu, RS1 + IMM_I));
+    uint8_t val;
+    if (!va_load(cpu, RS1 + IMM_I, &val, 1))
+        return;
+
+    SET_RD((int64_t)(int8_t)val);
 }
 
 void exec_lh(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint16_t val;
+    if (!va_load(cpu, RS1 + IMM_I, &val, 2))
+        return;
+
+    SET_RD((int64_t)(int16_t)val);
 }
 
 void exec_lw(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t val;
+    if (!va_load(cpu, RS1 + IMM_I, &val, 4))
+        return;
+
+    SET_RD((int64_t)(int32_t)val);
 }
 
 void exec_lbu(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint8_t val;
+    if (!va_load(cpu, RS1 + IMM_I, &val, 1))
+        return;
+
+    SET_RD((uint64_t)val);
 }
 
 void exec_lhu(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint16_t val;
+    if (!va_load(cpu, RS1 + IMM_I, &val, 2))
+        return;
+
+    SET_RD((uint64_t)val);
 }
 
 void exec_sb(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    va_store(cpu, RS1 + IMM_S, &RS2, 1);
 }
 
 void exec_sh(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    va_store(cpu, RS1 + IMM_S, &RS2, 2);
 }
 
 void exec_sw(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    va_store(cpu, RS1 + IMM_S, &RS2, 4);
 }
 
 void exec_jal(cpu_t* cpu, uint32_t instr) {
@@ -259,8 +349,6 @@ void exec_bgeu(cpu_t* cpu, uint32_t instr) {
         SET_NPC(PC + IMM_B);
 }
 void exec_addiw(cpu_t* cpu, uint32_t instr) {
-    // int32_t -> uint64_t is sign-extended implicitly?
-    // but anyway let's cast it explicitly
     SET_RD((int64_t)(int32_t)(RS1 + IMM_I));
 }
 
@@ -294,15 +382,23 @@ void exec_sraw(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_lwu(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint32_t val;
+    if (!va_load(cpu, RS1 + IMM_I, &val, 4))
+        return;
+    
+    SET_RD((uint64_t)val);
 }
 
 void exec_ld(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint64_t val;
+    if (!va_load(cpu, RS1 + IMM_I, &val, 8))
+        return;
+
+    SET_RD(val);
 }
 
 void exec_sd(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    va_store(cpu, RS1 + IMM_S, &RS2, 8);
 }
 
 void exec_mul(cpu_t* cpu, uint32_t instr) {
@@ -419,90 +515,269 @@ void exec_remuw(cpu_t* cpu, uint32_t instr) {
         SET_RD((int64_t)(uint32_t)(dividend % divisor));
 }
 
+// Ignore aq and rl for single core
 void exec_lr_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    cpu->lr_addr = RS1;
+    cpu->lr_valid = 1;
 }
 
 void exec_sc_w(cpu_t* cpu, uint32_t instr) {
+    if (!cpu->lr_valid || cpu->lr_addr != RS1) {
+        SET_RD(1); // failure
+        return;
+    }
 
+    if (!va_store(cpu, RS1, &RS2, 4)) {
+        SET_RD(1);
+        return;
+    }
+
+    SET_RD(0); // success
+    cpu->lr_valid = 0;
 }
 
 void exec_amoswap_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    if (!va_store(cpu, RS1, &RS2, 4))
+        return;
 }
 
 void exec_amoadd_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t sum = val + (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &sum, 4))
+        return;
 }
 
 void exec_amoxor_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t res = val ^ (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &res, 4))
+        return;
 }
 
 void exec_amoand_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t res = val & (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &res, 4))
+        return;
 }
 
 void exec_amoor_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t res = val | (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &res, 4))
+        return;
 }
 
 void exec_amomin_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t res = (int32_t)val < (int32_t)RS2 ? val : (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &res, 4))
+        return;
 }
 
 void exec_amomax_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t res = (int32_t)val > (int32_t)RS2 ? val : (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &res, 4))
+        return;
 }
 
 void exec_amominu_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t res = val < (uint32_t)RS2 ? val : (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &res, 4))
+        return;
 }
 
 void exec_amomaxu_w(cpu_t* cpu, uint32_t instr) {
+    uint32_t val;
+    if (!va_load(cpu, RS1, &val, 4))
+        return;
 
+    SET_RD((int64_t)(int32_t)val);
+
+    uint32_t res = val > (uint32_t)RS2 ? val : (uint32_t)RS2;
+    if (!va_store(cpu, RS1, &res, 4))
+        return;
 }
 
 void exec_lr_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    cpu->lr_addr = RS1;
+    cpu->lr_valid = 1;
 }
 
 void exec_sc_d(cpu_t* cpu, uint32_t instr) {
+    if (!cpu->lr_valid || cpu->lr_addr != RS1) {
+        SET_RD(1);
+        return;
+    }
 
+    if (!va_store(cpu, RS1, &RS2, 8)) {
+        SET_RD(1);
+        return;
+    }
+
+    SET_RD(0);
+    cpu->lr_valid = 0;
 }
 
 void exec_amoswap_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    if (!va_store(cpu, RS1, &RS2, 8))
+        return;
 }
 
 void exec_amoadd_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t sum = val + RS2;
+    if (!va_store(cpu, RS1, &sum, 8))
+        return;
 }
 
 void exec_amoxor_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t res = val ^ RS2;
+    if (!va_store(cpu, RS1, &res, 8))
+        return;
 }
 
 void exec_amoand_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t res = val & RS2;
+    if (!va_store(cpu, RS1, &res, 8))
+        return;
 }
 
 void exec_amoor_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t res = val | RS2;
+    if (!va_store(cpu, RS1, &res, 8))
+        return;
 }
 
 void exec_amomin_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t res = (int64_t)val < (int64_t)RS2 ? val : RS2;
+    if (!va_store(cpu, RS1, &res, 8))
+        return;
 }
 
 void exec_amomax_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t res = (int64_t)val > (int64_t)RS2 ? val : RS2;
+    if (!va_store(cpu, RS1, &res, 8))
+        return;
 }
 
 void exec_amominu_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t res = val < RS2 ? val : RS2;
+    if (!va_store(cpu, RS1, &res, 8))
+        return;
 }
 
 void exec_amomaxu_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t val;
+    if (!va_load(cpu, RS1, &val, 8))
+        return;
 
+    SET_RD(val);
+
+    uint64_t res = val > RS2 ? val : RS2;
+    if (!va_store(cpu, RS1, &res, 8))
+        return;
 }

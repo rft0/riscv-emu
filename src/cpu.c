@@ -1,12 +1,17 @@
 #include "cpu.h"
 
+// #include <stdio.h>
+
 #include "instr/table.h"
-#include <stdio.h>
+#include "instr/trap.h"
+#include "instr/mem.h"
 
 void cpu_step(cpu_t* cpu) {
-    uint32_t instr = *((uint32_t*)(cpu->mem + cpu->pc));
-    printf("PC: 0x%lx, Instruction: 0x%08x\n", cpu->pc, instr);
+    uint32_t instr;
+    if (!va_fetch(cpu, cpu->pc, &instr, 4))
+        return;
 
+    // printf("PC: 0x%lx, Instruction: 0x%08x\n", cpu->pc, instr);
     cpu->npc = cpu->pc + 4;
 
     for (int i = 0; i < instr_table_size; i++) {
@@ -17,5 +22,5 @@ void cpu_step(cpu_t* cpu) {
         }
     }
 
-    printf("Illegal instruction at PC=0x%lx: 0x%08x\n", cpu->pc - 4, instr);
+    raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
 }
