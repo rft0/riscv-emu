@@ -9,8 +9,12 @@ void cpu_step(cpu_t* cpu) {
     if (!va_fetch(cpu, cpu->pc, &instr, 4))
         return;
 
-    // printf("PC: 0x%lx, Instruction: 0x%08x\n", cpu->pc, instr);
-    cpu->npc = cpu->pc + 4;
+    if ((instr & 0x3) != 0x3) {
+        instr &= 0xFFFF;
+        cpu->npc = cpu->pc + 2;
+    } else {
+        cpu->npc = cpu->pc + 4;
+    }
 
     for (int i = 0; i < instr_table_size; i++) {
         if ((instr & instr_table[i].mask) == instr_table[i].match) {

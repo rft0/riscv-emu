@@ -8,6 +8,7 @@
 #define _RD                 extract32(instr, 11, 7)
 #define _RS1                extract32(instr, 19, 15)
 #define _RS2                extract32(instr, 24, 20)
+#define _RS3                extract32(instr, 31, 27)
 
 #define PC                  (cpu->pc)
 #define NPC                 (cpu->npc)
@@ -15,10 +16,12 @@
 #define RD                  (cpu->x[_RD])
 #define RS1                 (cpu->x[_RS1])
 #define RS2                 (cpu->x[_RS2])
+#define RS3                 (cpu->x[_RS3])
 
 #define SET_RD(val)         do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
 #define SET_PC(val)         (cpu->pc = (val))
 #define SET_NPC(val)        (cpu->npc = (val))
+#define SET_SP(val)         (cpu->x[2] = (val))
 
 #define IMM_I               sext(extract32(instr, 31, 20), 12)
 #define IMM_S               sext((extract32(instr, 31, 25) << 5) | extract32(instr, 11, 7), 12)
@@ -32,6 +35,7 @@
 
 #define AMO_AQ              extract32(instr, 26, 26)
 #define AMO_RL              extract32(instr, 25, 25)
+#define RMODE               extract32(instr, 14, 12)
 
 void exec_lui(cpu_t* cpu, uint32_t instr) {
     SET_RD(IMM_U); // Yes IMM_U is zero extended
@@ -190,10 +194,11 @@ void exec_csrrci(cpu_t* cpu, uint32_t instr) {
 void exec_ecall(cpu_t* cpu, uint32_t instr) {
     uint64_t cause;
     switch (cpu->mode) {
-        case PRIV_U: cause = 8; break;
-        case PRIV_S: cause = 9; break;
-        case PRIV_M: cause = 11; break;
-        default: cause = 11; break;
+        case PRIV_U: cause = CAUSE_ECALL_FROM_U; break;
+        case PRIV_S: cause = CAUSE_ECALL_FROM_HS; break;
+        case PRIV_H: cause = CAUSE_ECALL_FROM_VS; break;
+        case PRIV_M: cause = CAUSE_ECALL_FROM_M; break;
+        default: cause = CAUSE_ECALL_FROM_M; break;
     }
 
     raise_trap(cpu, cause, PC, 0);
@@ -215,16 +220,12 @@ void exec_sret(cpu_t* cpu, uint32_t instr) {
     uint64_t spp = (sstatus >> 8) & 1;
     uint64_t spie = (sstatus >> 5) & 1;
 
-    // set PC
-    cpu->pc = sepc;
-
-    // restore priv
+    SET_NPC(sepc);
     cpu->mode = spp ? PRIV_S : PRIV_U;
 
-    // update sstatus
-    sstatus = (sstatus & ~0x100UL) | (0UL << 8);   // SPP=U
-    sstatus = (sstatus & ~0x2UL) | (spie << 1);    // SIE=SPIE
-    sstatus |= (1UL << 5);                         // SPIE=1
+    sstatus = (sstatus & ~0x100UL) | (0UL << 8);    // SPP=U
+    sstatus = (sstatus & ~0x2UL) | (spie << 1);     // SIE=SPIE
+    sstatus |= (1UL << 5);                          // SPIE=1
 
     csr_write(cpu, CSR_SSTATUS, sstatus);
 }
@@ -241,13 +242,12 @@ void exec_mret(cpu_t* cpu, uint32_t instr) {
     uint64_t mpp = (mstatus >> 11) & 3;
     uint64_t mpie = (mstatus >> 7) & 1;
 
-    cpu->pc = mepc;
+    SET_NPC(mepc);
     cpu->mode = mpp; // 0=U,1=S,3=M
 
-    // update mstatus
-    mstatus = (mstatus & ~(3UL << 11));          // MPP=U
-    mstatus = (mstatus & ~0x8UL) | (mpie << 3);  // MIE=MPIE
-    mstatus |= (1UL << 7);                       // MPIE=1
+    mstatus = (mstatus & ~(3UL << 11));             // MPP=U
+    mstatus = (mstatus & ~0x8UL) | (mpie << 3);     // MIE=MPIE
+    mstatus |= (1UL << 7);                          // MPIE=1
 
     csr_write(cpu, CSR_MSTATUS, mstatus);
 }
@@ -784,4 +784,400 @@ void exec_amomaxu_d(cpu_t* cpu, uint32_t instr) {
     uint64_t res = val > RS2 ? val : RS2;
     if (!va_store(cpu, RS1, &res, 8))
         return;
+}
+
+void exec_flw(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsw(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmadd_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmsub_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fnmsub_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fnmadd_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fadd_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsub_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmul_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fdiv_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsqrt_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsgnj_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsgnjn_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsgnjx_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmin_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmax_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_w_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_wu_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmv_x_v(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_feq_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_flt_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fle_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fclass_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_s_w(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_s_wu(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmv_v_x(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_l_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_lu_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_s_l(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_s_lu(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fld(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsd(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmadd_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmsub_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fnmsub_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fnmadd_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fadd_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsub_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmul_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fdiv_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsqrt_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsgnj_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsgnjn_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fsgnjx_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmin_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmax_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_s_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_d_s(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_feq_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_flt_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fle_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fclass_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_w_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_wu_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_d_w(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_d_wu(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_l_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_lu_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmv_x_d(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_d_l(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fcvt_d_lu(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_fmv_d_x(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_addi4spn(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_fld(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_lw(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_ld(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_fsd(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_sw(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_sd(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_nop(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_addi(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_addiw(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_li(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_addi16sp(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_lui(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_srli(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_srai(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_andi(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_sub(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_xor(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_or(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_and(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_subw(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_addw(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_j(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_beqz(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_bnez(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_slli(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_fldsp(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_lwsp(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_ldsp(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_jr(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_mv(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_ebreak(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_jalr(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_add(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_fsdsp(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_swsp(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
+}
+
+void exec_c_sdsp(cpu_t* cpu, uint32_t instr) {
+    //! TODO: Yet to be implemented.
 }

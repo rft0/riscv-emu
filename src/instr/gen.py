@@ -2,6 +2,13 @@ from datetime import datetime
 import re
 
 fields = {
+    "c_opcode": (0, 1),
+    "c_funct3": (13, 15),
+    "c_funct4": (12, 15),
+    "c_rd": (2, 4),
+    "c_rs2": (2, 4),
+    "c_rs1": (7, 9),
+
     "opcode": (0, 6),
     "rd": (7, 11),
     "funct3": (12, 14),
