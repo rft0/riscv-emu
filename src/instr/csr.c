@@ -9,8 +9,8 @@ int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
     }
     
     switch (addr) {
-        case CSR_FFLAGS:        *out = cpu->csr.fflags; break;
-        case CSR_FRM:           *out = cpu->csr.frm; break;
+        case CSR_FFLAGS:        *out = cpu->csr.fcsr & 0x1F; break;
+        case CSR_FRM:           *out = (cpu->csr.fcsr >> 5) & 0x7; break;
         case CSR_FCSR:          *out = cpu->csr.fcsr; break;
         case CSR_VSTART:        *out = cpu->csr.vstart; break;
         case CSR_VXSAT:         *out = cpu->csr.vxsat; break;
@@ -100,8 +100,8 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
     }
     
     switch (addr) {
-        case CSR_FFLAGS:        cpu->csr.fflags = val; break;
-        case CSR_FRM:           cpu->csr.frm = val; break;
+        case CSR_FFLAGS:        cpu->csr.fcsr = (cpu->csr.fcsr & ~0x1F) | (val & 0x1F); break;
+        case CSR_FRM:           cpu->csr.fcsr = (cpu->csr.fcsr & ~0xE0) | ((val & 0x7) << 5); break;
         case CSR_FCSR:          cpu->csr.fcsr = val; break;
         case CSR_VSTART:        cpu->csr.vstart = val; break;
         case CSR_VXSAT:         cpu->csr.vxsat = val; break;

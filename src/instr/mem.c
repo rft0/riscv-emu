@@ -16,18 +16,10 @@
 #define PTE_A   (1ULL << 6)
 #define PTE_D   (1ULL << 7)
 
-typedef struct {
-    uint64_t virt_base;
-    uint64_t phys_base;
-    uint64_t pte;
-    uint64_t pte_addr;
-    uint64_t age;
-    uint8_t dirty;
-    uint8_t accessed;
-    uint8_t read;
-    uint8_t write;
-    uint8_t execute;
-    uint8_t user;
+typedef struct tlb_enrty {
+    uint64_t vpn;
+    uint64_t ppn;
+    struct tlb_entry* next;
 } tlb_entry_t;
 
 typedef struct mem_region {

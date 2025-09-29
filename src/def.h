@@ -4,27 +4,32 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define GENMASK32(h, l) (((~0U) - (1U << (l)) + 1) & (~0U >> (31 - (h))))
-#define GENMASK64(h, l) (((~0ULL) - (1ULL << (l)) + 1) & (~0ULL >> (63 - (h))))
+static inline uint16_t extract16(uint32_t value, int h, int l) {
+    return (value << (15 - h)) >> (15 - h + l);
+}
 
 static inline uint32_t extract32(uint32_t value, int h, int l) {
-    return (value >> l) & ((1U << (h - l + 1)) - 1);
+    return (value << (31 - h)) >> (31 - h + l);
 }
 
 static inline uint64_t extract64(uint64_t value, int h, int l) {
-    return (value >> l) & ((1ULL << (h - l + 1)) - 1);
+    return (value << (63 - h)) >> (63 - h + l);
 }
 
 static inline int64_t sext(int64_t value, int size) {
     return (value << (64 - size)) >> (64 - size);
 }
 
+static inline int64_t sextract16(int32_t value, int h, int l) {
+    return sext(extract16(value, h, l), h - l + 1);
+}
+
 static inline int64_t sextract32(int32_t value, int h, int l) {
-    return sext((value >> l) & ((1U << (h - l + 1)) - 1), h - l + 1);
+    return sext(extract32(value, h, l), h - l + 1);
 }
 
 static inline int64_t sextract64(int64_t value, int h, int l) {
-    return sext((value >> l) & ((1ULL << (h - l + 1)) - 1), h - l + 1);
+    return sext(extract64(value, h, l), h - l + 1);
 }
 
 #endif

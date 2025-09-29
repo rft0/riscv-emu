@@ -3,7 +3,6 @@
 // -----------------------------------------
 
 #include "table.h"
-#include "../cpu.h"
 
 extern void exec_lui(cpu_t* cpu, uint32_t instr);
 extern void exec_auipc(cpu_t* cpu, uint32_t instr);

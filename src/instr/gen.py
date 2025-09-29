@@ -68,8 +68,7 @@ if __name__ == "__main__":
         f.write('// -----------------------------------------\n')
         f.write(f'// This file is auto-generated. ({datetime.now().strftime("%Y-%m-%d")})\n')
         f.write('// -----------------------------------------\n\n')
-        f.write('#include "table.h"\n')
-        f.write('#include "../cpu.h"\n\n')
+        f.write('#include "table.h"\n\n')
         for _, _, name in instr_table:
             f.write(f'extern void exec_{name}(cpu_t* cpu, uint32_t instr);\n')
 
