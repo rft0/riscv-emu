@@ -76,9 +76,9 @@
 // c.lwsp
 #define IMM_CLWSP           (extract16(instr, 12, 12) << 5 | extract16(instr, 6, 4) << 2 | extract16(instr, 3, 2) << 6)
 // c.fsdsp, c.sdsp
-#define IMM_CFSDSP          (extract16(instr, 12, 10) << 3 | extract16(9, 7) << 6)
+#define IMM_CFSDSP          (extract16(instr, 12, 10) << 3 | extract16(instr, 9, 7) << 6)
 // c.swsp, c.fswsp
-#define IMM_CSWSP           (extract16(instr, 12, 9) << 2 | extract16(8, 7) << 6)
+#define IMM_CSWSP           (extract16(instr, 12, 9) << 2 | extract16(instr, 8, 7) << 6)
 
 #define SHAMTRV64           extract32(instr, 25, 20)
 #define SHAMT               extract32(instr, 24, 20)
@@ -347,7 +347,7 @@ void exec_ecall(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_ebreak(cpu_t* cpu, uint32_t instr) {
-    raise_trap(cpu, 3, PC, 0);
+    raise_trap(cpu, CAUSE_BREAKPOINT, PC, 0);
 }
 
 void exec_sret(cpu_t* cpu, uint32_t instr) {
@@ -1664,11 +1664,12 @@ void exec_c_mv(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_ebreak(cpu_t* cpu, uint32_t instr) {
-    //! TODO: Yet to be implemented.
+    raise_trap(cpu, CAUSE_BREAKPOINT, PC, 0);
 }
 
 void exec_c_jalr(cpu_t* cpu, uint32_t instr) {
-    //! TODO: LOOK IMPLEMENTATION WEIRD
+    cpu->x[1] = PC + 2;
+    SET_NPC(RS1);
 }
 
 // (HINT, rd=0)
@@ -1677,13 +1678,13 @@ void exec_c_add(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_fsdsp(cpu_t* cpu, uint32_t instr) {
-    //! TODO: Yet to be implemented.
+    va_store(cpu, SP + IMM_CFSDSP, &FRS2, 8);
 }
 
 void exec_c_swsp(cpu_t* cpu, uint32_t instr) {
-    //! TODO: Yet to be implemented.
+    va_store(cpu, SP + IMM_CSWSP, &RS2, 4);
 }
 
 void exec_c_sdsp(cpu_t* cpu, uint32_t instr) {
-    //! TODO: Yet to be implemented.
+    va_store(cpu, SP + IMM_CFSDSP, &RS2, 8);
 }
