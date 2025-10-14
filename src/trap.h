@@ -1,7 +1,7 @@
 #ifndef __TRAP_H__
 #define __TRAP_H__
 
-#include "../cpu.h"
+#include "cpu.h"
 
 // Interrupts
 #define CAUSE_INT_RESERVED              0

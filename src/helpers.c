@@ -1,7 +1,11 @@
 #include "helpers.h"
 
+#include "mem.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <elf.h>
 
 uint8_t* load_binary(const char* path, size_t* out_size) {
     FILE* f = fopen(path, "rb");
@@ -25,6 +29,121 @@ uint8_t* load_binary(const char* path, size_t* out_size) {
         *out_size = size;
 
     return buffer;
+}
+
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <elf.h>
+#include "cpu.h"
+#include "mem.h"
+
+int load_elf(emu_t *emu, const char *path) {
+    FILE *f = fopen(path, "rb");
+    if (!f)
+        return 0;
+
+    unsigned char ident[EI_NIDENT];
+    if (fread(ident, 1, EI_NIDENT, f) != EI_NIDENT) {
+        fclose(f);
+        return 0;
+    }
+
+    if (memcmp(ident, ELFMAG, SELFMAG) != 0) {
+        fclose(f);
+        return 0;
+    }
+
+    fseek(f, 0, SEEK_SET);
+    if (ident[EI_CLASS] == ELFCLASS32) {
+        Elf32_Ehdr eh;
+        if (fread(&eh, sizeof(eh), 1, f) != 1) {
+            fclose(f);
+            return 0;
+        }
+        if (eh.e_machine != EM_RISCV) {
+            fclose(f);
+            return 0;
+        }
+
+        for (int i = 0; i < eh.e_phnum; i++) {
+            Elf32_Phdr ph;
+            fseek(f, eh.e_phoff + i * eh.e_phentsize, SEEK_SET);
+            if (fread(&ph, sizeof(ph), 1, f) != 1)
+                continue;
+            if (ph.p_type != PT_LOAD)
+                continue;
+
+            uint8_t *buf = malloc(ph.p_filesz);
+            if (!buf)
+                continue;
+
+            fseek(f, ph.p_offset, SEEK_SET);
+            fread(buf, 1, ph.p_filesz, f);
+            phys_write(&emu->cpu, ph.p_paddr, buf, ph.p_filesz);
+            free(buf);
+
+            if (ph.p_memsz > ph.p_filesz) {
+                size_t zero_sz = ph.p_memsz - ph.p_filesz;
+                uint8_t *zero = calloc(1, zero_sz);
+                if (zero) {
+                    phys_write(&emu->cpu, ph.p_paddr + ph.p_filesz, zero, zero_sz);
+                    free(zero);
+                }
+            }
+        }
+
+        emu->cpu.pc = eh.e_entry;
+
+        fclose(f);
+        return 1;
+
+    } else if (ident[EI_CLASS] == ELFCLASS64) {
+        Elf64_Ehdr eh;
+        if (fread(&eh, sizeof(eh), 1, f) != 1) {
+            fclose(f);
+            return 0;
+        }
+        if (eh.e_machine != EM_RISCV) {
+            fclose(f);
+            return 0;
+        }
+
+        for (int i = 0; i < eh.e_phnum; i++) {
+            Elf64_Phdr ph;
+            fseek(f, eh.e_phoff + i * eh.e_phentsize, SEEK_SET);
+            if (fread(&ph, sizeof(ph), 1, f) != 1)
+                continue;
+            if (ph.p_type != PT_LOAD)
+                continue;
+
+            uint8_t *buf = malloc(ph.p_filesz);
+            if (!buf)
+                continue;
+
+            fseek(f, ph.p_offset, SEEK_SET);
+            fread(buf, 1, ph.p_filesz, f);
+            phys_write(&emu->cpu, ph.p_paddr, buf, ph.p_filesz);
+            free(buf);
+
+            if (ph.p_memsz > ph.p_filesz) {
+                size_t zero_sz = ph.p_memsz - ph.p_filesz;
+                uint8_t *zero = calloc(1, zero_sz);
+                if (zero) {
+                    phys_write(&emu->cpu, ph.p_paddr + ph.p_filesz, zero, zero_sz);
+                    free(zero);
+                }
+            }
+        }
+
+        emu->cpu.pc = eh.e_entry;
+        fclose(f);
+        return 1;
+    }
+
+    fclose(f);
+    return 0;
 }
 
 uint64_t mulu128(uint64_t a, uint64_t b, uint64_t* hi_result) {

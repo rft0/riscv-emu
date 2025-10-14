@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include "tlb.h"
 
 #define TLB_SIZE 128
 #define HASH_SIZE 64

@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include <string.h>
 
-#include "emu.h"
 #include "helpers.h"
+#include "emu.h"
 
 int main() {
     emu_t* emulator = emu_new();
@@ -11,12 +10,9 @@ int main() {
         return 1;
     }
 
-    size_t program_size = 0;
-    uint8_t* program = load_binary("tests/isa/rv32mi-p-scall", &program_size);
-    memcpy(emulator->cpu.mem, program, program_size);
+    load_elf(emulator, "tests/isa/rv32ua-p-amoadd_w");
 
     emu_run(emulator);
-
     emu_free(emulator);
 
     return 0;

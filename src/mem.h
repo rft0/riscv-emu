@@ -1,7 +1,26 @@
 #ifndef __MEM_H__
 #define __MEM_H__
 
-#include "../cpu.h"
+#include "cpu.h"
+
+#define RAM_BASE 0x80000000
+#define RAM_SIZE (512 * 1024 * 1024)
+
+struct mem_region;
+typedef int (*fn_mem_read)(struct mem_region* region, cpu_t* cpu, uint64_t addr, void* out, size_t size);
+typedef int (*fn_mem_write)(struct mem_region* region, cpu_t* cpu, uint64_t addr, void* val, size_t size);
+
+typedef struct mem_region {
+    uint64_t base;
+    uint64_t size;
+    void* mem;
+    uint8_t r;
+    uint8_t w;
+    uint8_t x;
+
+    fn_mem_read read;
+    fn_mem_write write;
+} mem_region_t;
 
 typedef enum {
     ACCESS_FETCH = 1,

@@ -1,7 +1,7 @@
 #ifndef __CSR_H__
 #define __CSR_H__
 
-#include "../cpu.h"
+#include "cpu.h"
 
 #define CSR_FFLAGS                  0x001
 #define CSR_FRM                     0x002

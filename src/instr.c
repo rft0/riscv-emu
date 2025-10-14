@@ -1,9 +1,8 @@
 #include <fenv.h>
 #include <math.h>
 
-#include "../cpu.h"
-#include "../helpers.h"
-
+#include "cpu.h"
+#include "helpers.h"
 #include "trap.h"
 #include "csr.h"
 #include "mem.h"
@@ -267,6 +266,10 @@ void exec_fence(cpu_t* cpu, uint32_t instr) {
 
 void exec_fence_tso(cpu_t* cpu, uint32_t instr) {
     // Do nothing.
+}
+
+void exec_pause(cpu_t* cpu, uint32_t instr) {
+    // Pause hint, it is ok to do nothing.
 }
 
 void exec_fence_i(cpu_t* cpu, uint32_t instr) {

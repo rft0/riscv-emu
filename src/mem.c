@@ -5,7 +5,10 @@
 
 #include "trap.h"
 
-#define RAM_SIZE (512 * 1024 * 1024) // 512 MB
+#include "clint.h"
+#include "uart.h"
+#include "plic.h"
+#include "virtio.h"
 
 #define PTE_V   (1ULL << 0)
 #define PTE_R   (1ULL << 1)
@@ -22,18 +25,6 @@ typedef struct tlb_enrty {
     struct tlb_entry* next;
 } tlb_entry_t;
 
-typedef struct mem_region {
-    uint64_t base;
-    uint64_t size;
-    uint8_t* mem;
-    uint8_t r;
-    uint8_t w;
-    uint8_t x;
-
-    // int (*read)(struct mem_region* region, uint64_t offset, void* out, size_t size);
-    // int (*write)(struct mem_region* region, uint64_t offset, void* val, size_t size);
-} mem_region_t;
-
 typedef struct {
     mem_region_t regions[32];
     int num_regions;
@@ -41,7 +32,7 @@ typedef struct {
 
 mem_map_t g_memory_map = { 0 };
 
-static void mem_add_region(uint64_t base, uint64_t size, uint8_t r, uint8_t w, uint8_t x, uint8_t* mem) {
+static void mem_add_region(uint64_t base, uint64_t size, void* mem, uint8_t r, uint8_t w, uint8_t x, fn_mem_read read, fn_mem_write write) {
     mem_region_t* rgn = &g_memory_map.regions[g_memory_map.num_regions++];
     rgn->base = base;
     rgn->size = size;
@@ -49,14 +40,18 @@ static void mem_add_region(uint64_t base, uint64_t size, uint8_t r, uint8_t w, u
     rgn->w = w;
     rgn->x = x;
     rgn->mem = mem;
+    rgn->read = read;
+    rgn->write = write;
 }
 
 void mem_init() {
-    mem_add_region(0x80000000, RAM_SIZE, 1, 1, 1, malloc(RAM_SIZE));
-    mem_add_region(0x10000000, 0x1000, 1, 1, 1, malloc(0x1000)); // UART0
-    mem_add_region(0x02000000, 0x10000, 1, 1, 1, malloc(0x10000)); // CLINT
-    mem_add_region(0x0c000000, 0x100000, 1, 1, 1, malloc(0x100000)); // PLIC
-    //! TODO: Add virtio here
+    mem_add_region(RAM_BASE, RAM_SIZE, malloc(RAM_SIZE), 1, 1, 1, NULL, NULL);
+    mem_add_region(UART_BASE, UART_SIZE, NULL, 1, 1, 1, uart_read, uart_write); // UART0
+    mem_add_region(CLINT_BASE, CLINT_SIZE, NULL, 1, 1, 1, clint_read, clint_write); // CLINT
+    mem_add_region(PLIC_BASE, PLIC_SIZE, NULL, 1, 1, 1, plic_read, plic_write); // PLIC
+    mem_add_region(VIRTIO_BLK_BASE, VIRTIO_SIZE, NULL, 1, 1, 1, virtio_blk_read, virtio_blk_write); // VIRTIO Block
+    mem_add_region(VIRTIO_NET_BASE, VIRTIO_SIZE, NULL, 1, 1, 1, virtio_net_read, virtio_net_write); // VIRTIO Net
+    //! TODO: Possibly add first 1MB as ROM
     //! TODO: Check dtb used for qemu
 }
 
@@ -194,6 +189,9 @@ int phys_read(cpu_t* cpu, uint64_t pa, void* out, size_t size) {
         return 0;
     }
 
+    if (rgn->read)
+        return rgn->read(rgn, cpu, pa, out, size);
+
     memcpy(out, rgn->mem + (pa - rgn->base), size);
     return 1;
 }
@@ -204,6 +202,9 @@ int phys_write(cpu_t* cpu, uint64_t pa, void* val, size_t size) {
         raise_trap(cpu, CAUSE_STORE_PF, pa, 0);
         return 0;
     }
+
+    if (rgn->write)
+        return rgn->write(rgn, cpu, pa, val, size);
 
     memcpy(rgn->mem + (pa - rgn->base), val, size);
     return 1;

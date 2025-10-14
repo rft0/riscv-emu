@@ -3,6 +3,8 @@
 
 #include "def.h"
 
+#define MAX_HARTS 16
+
 enum {
     PRIV_U = 0,
     PRIV_S = 1,
@@ -81,6 +83,7 @@ typedef struct {
 } csr_file_t;
 
 typedef struct {
+    uint8_t hartid;
     uint8_t halted;
     uint8_t mode;
 

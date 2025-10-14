@@ -1,7 +1,7 @@
 #ifndef __TABLE_H__
 #define __TABLE_H__
 
-#include "../cpu.h"
+#include "cpu.h"
 
 typedef struct {
     uint32_t match;
