@@ -7,8 +7,10 @@
 #define RAM_SIZE (512 * 1024 * 1024)
 
 struct mem_region;
-typedef int (*fn_mem_read)(struct mem_region* region, cpu_t* cpu, uint64_t addr, void* out, size_t size);
-typedef int (*fn_mem_write)(struct mem_region* region, cpu_t* cpu, uint64_t addr, void* val, size_t size);
+// typedef int (*fn_mem_read)(struct mem_region* region, cpu_t* cpu, uint64_t addr, void* out, size_t size);
+// typedef int (*fn_mem_write)(struct mem_region* region, cpu_t* cpu, uint64_t addr, void* val, size_t size);
+typedef int (*fn_mem_read)(uint64_t addr, void* out, size_t size);
+typedef int (*fn_mem_write)(uint64_t addr, void* pval, size_t size);
 
 typedef struct mem_region {
     uint64_t base;

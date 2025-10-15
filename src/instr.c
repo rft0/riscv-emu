@@ -286,7 +286,9 @@ void exec_cssrw(cpu_t* cpu, uint32_t instr) {
     csr_write(cpu, addr, RS1);
 }
 
+#include <stdio.h>
 void exec_csrrs(cpu_t* cpu, uint32_t instr) {
+    printf("here\n");
     uint32_t addr = IMM_CSR;
     uint64_t t;
     if (!csr_read(cpu, addr, &t))

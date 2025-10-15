@@ -4,8 +4,8 @@
 #include "cpu.h"
 
 typedef struct {
-    uint32_t match;
     uint32_t mask;
+    uint32_t match;
     void (*func)(cpu_t* cpu, uint32_t instr);
 } instr_entry_t;
 

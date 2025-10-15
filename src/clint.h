@@ -6,7 +6,7 @@
 #define CLINT_BASE                      0x02000000
 #define CLINT_SIZE                      0x10000
 
-int clint_read(mem_region_t* region, cpu_t* cpu, uint64_t addr, void* out, size_t size);
-int clint_write(mem_region_t* region, cpu_t* cpu, uint64_t addr, void* val, size_t size);
+int clint_read(uint64_t addr, void* out, size_t size);
+int clint_write(uint64_t addr, void* pval, size_t size);
 
 #endif

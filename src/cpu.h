@@ -3,7 +3,8 @@
 
 #include "def.h"
 
-#define MAX_HARTS 16
+// Single core for now
+#define HART_COUNT 1
 
 enum {
     PRIV_U = 0,
@@ -83,7 +84,6 @@ typedef struct {
 } csr_file_t;
 
 typedef struct {
-    uint8_t hartid;
     uint8_t halted;
     uint8_t mode;
 

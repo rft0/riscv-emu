@@ -64,6 +64,10 @@ if __name__ == "__main__":
 
                 instr_table.append((mask, match, name.replace(".", "_")))
 
+    # instr_table.sort(key=lambda x: bin(x[0]).count("1"), reverse=True)
+    instr_table.sort(key=lambda x: (bin(x[0]).count("1"), x[0]), reverse=True)
+
+
     with open("table.c", "w") as f:
         f.write('// -----------------------------------------\n')
         f.write(f'// This file is auto-generated. ({datetime.now().strftime("%Y-%m-%d")})\n')

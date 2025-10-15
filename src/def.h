@@ -32,4 +32,13 @@ static inline int64_t sextract64(int64_t value, int h, int l) {
     return sext(extract64(value, h, l), h - l + 1);
 }
 
+static inline uint64_t reg_read_multi(uint64_t regval, uint32_t offset, uint32_t size) {
+    return (regval >> (offset * 8)) & ((1ULL << (size * 8)) - 1);
+}
+
+static inline void reg_write_multi(uint64_t *reg, uint32_t offset, uint32_t size, uint64_t val) {
+    uint64_t mask = ((1ULL << (size * 8)) - 1) << (offset * 8);
+    *reg = (*reg & ~mask) | ((val << (offset * 8)) & mask);
+}
+
 #endif

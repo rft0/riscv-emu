@@ -189,8 +189,9 @@ int phys_read(cpu_t* cpu, uint64_t pa, void* out, size_t size) {
         return 0;
     }
 
-    if (rgn->read)
-        return rgn->read(rgn, cpu, pa, out, size);
+    if (rgn->read) {
+        return rgn->read(pa, out, size);
+    }
 
     memcpy(out, rgn->mem + (pa - rgn->base), size);
     return 1;
@@ -204,7 +205,7 @@ int phys_write(cpu_t* cpu, uint64_t pa, void* val, size_t size) {
     }
 
     if (rgn->write)
-        return rgn->write(rgn, cpu, pa, val, size);
+        return rgn->write(pa, val, size);
 
     memcpy(rgn->mem + (pa - rgn->base), val, size);
     return 1;

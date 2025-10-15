@@ -6,7 +6,7 @@
 #define UART_BASE  0x10000000
 #define UART_SIZE  0x100
 
-int uart_read(mem_region_t* region, cpu_t* cpu, uint64_t addr, void* out, size_t size);
-int uart_write(mem_region_t* region, cpu_t* cpu, uint64_t addr, void* val, size_t size);
+int uart_read(uint64_t addr, void* out, size_t size);
+int uart_write(uint64_t addr, void* pval, size_t size);
 
 #endif

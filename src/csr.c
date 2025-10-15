@@ -161,7 +161,8 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
             }  else if (addr >= CSR_PMPADDR0 && addr <= CSR_PMPADDR0 + 0x3F) {
                 cpu->csr.pmpaddr[addr - CSR_PMPADDR0] = val;
             }  else {
-                raise_trap(cpu, CAUSE_ILLEGAL_INSTR, addr, 0);
+                //! TODO: Raise trap if csr do not exist, if RO csr silently ignore
+                // raise_trap(cpu, CAUSE_ILLEGAL_INSTR, addr, 0);
                 return 0;
             }
             break;

@@ -39,8 +39,8 @@ uint8_t* load_binary(const char* path, size_t* out_size) {
 #include "cpu.h"
 #include "mem.h"
 
-int load_elf(emu_t *emu, const char *path) {
-    FILE *f = fopen(path, "rb");
+int load_elf(emu_t* emu, const char* path, int change_pc) {
+    FILE* f = fopen(path, "rb");
     if (!f)
         return 0;
 
@@ -94,7 +94,8 @@ int load_elf(emu_t *emu, const char *path) {
             }
         }
 
-        emu->cpu.pc = eh.e_entry;
+        if (change_pc)
+            emu->cpu.pc = eh.e_entry;
 
         fclose(f);
         return 1;
@@ -137,7 +138,9 @@ int load_elf(emu_t *emu, const char *path) {
             }
         }
 
-        emu->cpu.pc = eh.e_entry;
+        if (change_pc)
+            emu->cpu.pc = eh.e_entry;
+
         fclose(f);
         return 1;
     }

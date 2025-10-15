@@ -3,8 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "helpers.h"
 #include "mem.h"
 #include "cpu.h"
+
+emu_t* g_emu;
 
 emu_t* emu_new() {
     emu_t* emu = (emu_t*)malloc(sizeof(emu_t));
@@ -19,13 +22,25 @@ emu_t* emu_new() {
     // Initialize CPU
     emu->cpu.mode = PRIV_M;
 
-    // Setup for SBI
-    emu->cpu.pc = 0x80000000; // Entry point for the kernel
-    emu->cpu.x[10] = 0; // a0 = hartid
-    emu->cpu.x[11] = 0x40000000; // a1 = dtb ptr (just after the 1MB ROM)
+    // Load for SBI
+    load_elf(emu, "/path/to/sbi", 0);
 
-    // Initialize needed CPU CSRs
-    // ...
+    // Load Linux Kernel
+    load_elf(emu, "/path/to/kernel", 0);
+
+    // Load DTB
+    size_t dtb_size;
+    uint8_t* dtb = load_binary("riscv_virt.dtb", &dtb_size);
+    phys_write(&emu->cpu, DTB_LOAD_ADDR, dtb, dtb_size);
+
+    emu->cpu.pc = SBI_LOAD_ADDR;            // Entry point for the kernel
+    emu->cpu.x[10] = 0;                     // a0 = hartid
+    emu->cpu.x[11] = DTB_LOAD_ADDR;         // a1 = dtb ptr (just after the 1MB ROM)
+
+    // Initialize needed CSRs per CPU
+    emu->cpu.csr.mstatus = (PRIV_M << 11) | (0b01 << 13);
+    emu->cpu.csr.misa = (2ULL << 62) | (1ULL << ('I'-'A')) | (1ULL << ('M'-'A')) | (1ULL << ('A'-'A')) | (1ULL << ('F'-'A')) | (1ULL << ('D'-'A')) | (1ULL << ('C'-'A'));
+    emu->cpu.csr.mhartid = 0;
 
     return emu;
 }

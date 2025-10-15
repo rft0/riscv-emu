@@ -5,6 +5,10 @@
 
 #include "cpu.h"
 
+#define KERNEL_LOAD_ADDR        0x80200000
+#define SBI_LOAD_ADDR           0x80000000
+#define DTB_LOAD_ADDR           0x88000000
+
 typedef struct {
     cpu_t cpu;
 
