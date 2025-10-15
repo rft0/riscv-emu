@@ -30,7 +30,7 @@ emu_t* emu_new() {
 
     // Load DTB
     size_t dtb_size;
-    uint8_t* dtb = load_binary("riscv_virt.dtb", &dtb_size);
+    uint8_t* dtb = load_binary("/path/to/dtb", &dtb_size);
     phys_write(&emu->cpu, DTB_LOAD_ADDR, dtb, dtb_size);
 
     emu->cpu.pc = SBI_LOAD_ADDR;            // Entry point for the kernel
