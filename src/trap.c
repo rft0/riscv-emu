@@ -6,7 +6,7 @@ void raise_trap(cpu_t* cpu, uint64_t cause, uint64_t tval, int is_interrupt) {
     uint64_t medeleg = cpu->csr.medeleg;
     int delegate = 0;
 
-    // printf("trap: cause=%lu, tval=%lx, is_interrupt=%d, mode=%d\n", cause, tval, is_interrupt, cpu->mode);
+    printf("trap: cause=%lu, tval=%lx, is_interrupt=%d, mode=%d\n", cause, tval, is_interrupt, cpu->mode);
 
     // only delegate if current priv <= S
     if (!is_interrupt && cpu->mode <= PRIV_S && (medeleg >> cause) & 1)

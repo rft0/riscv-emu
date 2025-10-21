@@ -1,11 +1,14 @@
 #include <fenv.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "cpu.h"
 #include "helpers.h"
 #include "trap.h"
 #include "csr.h"
 #include "mem.h"
+
+#define DBG_PRINT(x)       do { printf("\nDBG: 0x%lX\n\n", (uint64_t)(x)); } while(0)
 
 #define _RD                 extract32(instr, 11, 7)
 #define _RS1                extract32(instr, 19, 15)
@@ -279,6 +282,7 @@ void exec_fence_i(cpu_t* cpu, uint32_t instr) {
 void exec_cssrw(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
     uint64_t value;
+
     if(!csr_read(cpu, addr, &value))
         return;
 
@@ -286,9 +290,7 @@ void exec_cssrw(cpu_t* cpu, uint32_t instr) {
     csr_write(cpu, addr, RS1);
 }
 
-#include <stdio.h>
 void exec_csrrs(cpu_t* cpu, uint32_t instr) {
-    printf("here\n");
     uint32_t addr = IMM_CSR;
     uint64_t t;
     if (!csr_read(cpu, addr, &t))
@@ -395,7 +397,7 @@ void exec_mret(cpu_t* cpu, uint32_t instr) {
     mstatus = (mstatus & ~(3UL << 11));             // MPP=U
     mstatus = (mstatus & ~0x8UL) | (mpie << 3);     // MIE=MPIE
     mstatus |= (1UL << 7);                          // MPIE=1
-
+    
     csr_write(cpu, CSR_MSTATUS, mstatus);
 }
 
@@ -476,6 +478,8 @@ void exec_beq(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_bne(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
     if (RS1 != RS2)
         SET_NPC(PC + IMM_B);
 }

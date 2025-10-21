@@ -11,14 +11,18 @@
 
 typedef struct {
     cpu_t cpu;
+    int running;
 
     uint8_t mem[0x10000];
 } emu_t;
 
 emu_t* emu_new();
-void emu_run(emu_t* emulator);
-void emu_free(emu_t* emulator);
+void emu_run();
 
-void emu_verbose(emu_t* emulator);
+void emu_stop();
+void emu_resume();
+void emu_free();
+
+void emu_dump();
 
 #endif

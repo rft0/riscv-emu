@@ -2,13 +2,18 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
+#include "emu.h"
 #include "trap.h"
 
+#include "dram.h"
 #include "clint.h"
 #include "uart.h"
 #include "plic.h"
 #include "virtio.h"
+
+#define RISCV_TESTS_TOHOST_ADDR     0x80001000
 
 #define PTE_V   (1ULL << 0)
 #define PTE_R   (1ULL << 1)
@@ -32,33 +37,29 @@ typedef struct {
 
 mem_map_t g_memory_map = { 0 };
 
-static void mem_add_region(uint64_t base, uint64_t size, void* mem, uint8_t r, uint8_t w, uint8_t x, fn_mem_read read, fn_mem_write write) {
+static void mem_add_region(uint64_t base, uint64_t size, fn_mem_read read, fn_mem_write write) {
     mem_region_t* rgn = &g_memory_map.regions[g_memory_map.num_regions++];
     rgn->base = base;
     rgn->size = size;
-    rgn->r = r;
-    rgn->w = w;
-    rgn->x = x;
-    rgn->mem = mem;
     rgn->read = read;
     rgn->write = write;
 }
 
 void mem_init() {
-    mem_add_region(RAM_BASE, RAM_SIZE, malloc(RAM_SIZE), 1, 1, 1, NULL, NULL);
-    mem_add_region(UART_BASE, UART_SIZE, NULL, 1, 1, 1, uart_read, uart_write); // UART0
-    mem_add_region(CLINT_BASE, CLINT_SIZE, NULL, 1, 1, 1, clint_read, clint_write); // CLINT
-    mem_add_region(PLIC_BASE, PLIC_SIZE, NULL, 1, 1, 1, plic_read, plic_write); // PLIC
-    mem_add_region(VIRTIO_BLK_BASE, VIRTIO_SIZE, NULL, 1, 1, 1, virtio_blk_read, virtio_blk_write); // VIRTIO Block
-    mem_add_region(VIRTIO_NET_BASE, VIRTIO_SIZE, NULL, 1, 1, 1, virtio_net_read, virtio_net_write); // VIRTIO Net
+    dram_init();
+
+    mem_add_region(DRAM_BASE, DRAM_SIZE, dram_read, dram_write); // DRAM
+    mem_add_region(UART_BASE, UART_SIZE, uart_read, uart_write); // UART0
+    mem_add_region(CLINT_BASE, CLINT_SIZE, clint_read, clint_write); // CLINT
+    mem_add_region(PLIC_BASE, PLIC_SIZE, plic_read, plic_write); // PLIC
+    mem_add_region(VIRTIO_BLK_BASE, VIRTIO_SIZE, virtio_blk_read, virtio_blk_write); // VIRTIO Block
+    mem_add_region(VIRTIO_NET_BASE, VIRTIO_SIZE, virtio_net_read, virtio_net_write); // VIRTIO Net
     //! TODO: Possibly add first 1MB as ROM
     //! TODO: Check dtb used for qemu
 }
 
 void mem_free() {
-    for (int i = 0; i < g_memory_map.num_regions; i++)
-        if (g_memory_map.regions[i].mem)
-            free(g_memory_map.regions[i].mem);
+    dram_free();
 
     g_memory_map.num_regions = 0;
 }
@@ -76,7 +77,7 @@ static mem_region_t* find_region(uint64_t pa) {
 int sv39_translate(cpu_t* cpu, uint64_t va, access_type_t access, uint64_t* pa_out) {
     uint64_t satp = cpu->csr.satp;
     uint64_t mode = extract64(satp, 63, 60);
-    
+
     if (mode != 8) {  // Sv39
         *pa_out = va;
         return 1;
@@ -184,35 +185,43 @@ int sv39_translate(cpu_t* cpu, uint64_t va, access_type_t access, uint64_t* pa_o
 
 int phys_read(cpu_t* cpu, uint64_t pa, void* out, size_t size) {
     mem_region_t* rgn = find_region(pa);
-    if (!rgn || !rgn->r || pa + size > rgn->base + rgn->size) {
+    //! TODO: Check this
+    if (!rgn || pa + size > rgn->base + rgn->size) {
+        printf("(0x%lX)Invalid phys read at 0x%lX\n", cpu->pc, pa);
+        exit(1);
         raise_trap(cpu, CAUSE_LOAD_PF, pa, 0);
         return 0;
     }
 
-    if (rgn->read) {
-        return rgn->read(pa, out, size);
-    }
-
-    memcpy(out, rgn->mem + (pa - rgn->base), size);
-    return 1;
+    return rgn->read(pa, out, size);
 }
 
 int phys_write(cpu_t* cpu, uint64_t pa, void* val, size_t size) {
     mem_region_t* rgn = find_region(pa);
-    if (!rgn || !rgn->w || pa + size > rgn->base + rgn->size) {
+    if (!rgn || pa + size > rgn->base + rgn->size) {
         raise_trap(cpu, CAUSE_STORE_PF, pa, 0);
         return 0;
     }
 
-    if (rgn->write)
-        return rgn->write(pa, val, size);
+    if (pa == RISCV_TESTS_TOHOST_ADDR) {
+        uint32_t value = *(uint32_t*)val;
+        if (value != 0) {
+            if (value == 1) {
+                printf("TEST PASSED\n");
+            } else {
+                uint32_t test_num = value >> 1;
+                printf("TEST FAILED case: %u (tohost=0x%X)\n", 
+                    test_num, value);
+            }
+            emu_stop();
+        }
+    }
 
-    memcpy(rgn->mem + (pa - rgn->base), val, size);
-    return 1;
+    return rgn->write(pa, val, size);
 }
 
 int va_fetch(cpu_t* cpu, uint64_t va, void* out, size_t size) {
-    if ((va & (size - 1)) != 0) {
+    if ((va & 1) != 0) {
         raise_trap(cpu, CAUSE_INSTR_ADDR_MISALIGNED, va, 0);
         return 0;
     }

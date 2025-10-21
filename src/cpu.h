@@ -28,10 +28,10 @@ typedef struct {
     uint64_t ssp;               // 0x011
     uint64_t seed;              // 0x015
     uint64_t jvt;               // 0x17
-    uint64_t cycle;             // 0xC00 (RO)
+    uint64_t mcycle;             // 0xC00 (RO)
     uint64_t time;              // 0xC01 (RO)
-    uint64_t instret;           // 0xC02 (RO)
-    uint64_t hpmcounter3[29];   // 0xC03-0xC1F (RO)
+    uint64_t minstret;           // 0xC02 (RO)
+    uint64_t mhpmcounter3[29];   // 0xC03-0xC1F (RO)
 
     // Supervisor
     uint64_t sstatus;           // 0x100
@@ -81,6 +81,23 @@ typedef struct {
     uint64_t mstateen1;         // 0x30D
     uint64_t mstateen2;         // 0x30E
     uint64_t mstateen3;         // 0x30F
+
+    uint64_t mnscratch;         // 0x740
+    uint64_t mnepc ;            // 0x741
+    uint64_t mncause;           // 0x742
+    uint64_t mnstatus;          // 0x744
+    uint64_t mcountinhibit;     // 0x320
+    uint64_t mhpmevent3[29];    // 0x323-0x33F
+
+    uint64_t tselect;           // 0x7A0
+    uint64_t tdata1;            // 0x7A1
+    uint64_t tdata2;            // 0x7A2
+    uint64_t tdata3;            // 0x7A3
+    uint64_t mcontext;          // 0x7A8
+    uint64_t dcsr;              // 0x7B0
+    uint64_t dpc;               // 0x7B1
+    uint64_t dscratch0;         // 0x7B2
+    uint64_t dscratch1;         // 0x7B3
 } csr_file_t;
 
 typedef struct {
@@ -100,5 +117,6 @@ typedef struct {
 } cpu_t;
 
 void cpu_step(cpu_t* cpu);
+void cpu_dump(cpu_t* cpu);
 
 #endif

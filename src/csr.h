@@ -38,6 +38,7 @@
 #define CSR_SSTATEEN1               0x10D
 #define CSR_SSTATEEN2               0x10E
 #define CSR_SSTATEEN3               0x10F
+
 #define CSR_MVENDORID               0xF11
 #define CSR_MARCHID                 0xF12
 #define CSR_MIMPID                  0xF13
@@ -65,6 +66,26 @@
 #define CSR_MSTATEEN1               0x30D
 #define CSR_MSTATEEN2               0x30E
 #define CSR_MSTATEEN3               0x30F
+
+#define CSR_MNSCRATCH               0x740
+#define CSR_MNEPC                   0x741
+#define CSR_MNCAUSE                 0x742
+#define CSR_MNSTATUS                0x744
+#define CSR_MCYCLE                  0xB00
+#define CSR_MINSTRET                0xB02
+#define CSR_MHPMCOUNTER3            0xB03
+#define CSR_MCOUNTINHIBIT           0x320
+#define CSR_MHPMEVENT3              0x323
+
+#define CSR_TSELECT                 0x7A0
+#define CSR_TDATA1                  0x7A1
+#define CSR_TDATA2                  0x7A2
+#define CSR_TDATA3                  0x7A3
+#define CSR_MCONTEXT                0x7A8
+#define CSR_DCSR                    0x7B0
+#define CSR_DPC                     0x7B1
+#define CSR_DSCRATCH0               0x7B2
+#define CSR_DSCRATCH1               0x7B3
 
 int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val);
 int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out);
