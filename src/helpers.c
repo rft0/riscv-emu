@@ -8,6 +8,8 @@
 #include <string.h>
 #include <elf.h>
 
+uint64_t g_tohost_addr = 0;
+
 uint8_t* load_binary(const char* path, size_t* out_size) {
     FILE* f = fopen(path, "rb");
     if (!f) return NULL;
@@ -78,6 +80,115 @@ uint64_t mulsu128(int64_t a, uint64_t b, int64_t* hi_result) {
 // ----------------------------------- //
 // ELF Helpers Starts Here
 // ----------------------------------- //
+void find_tohost_32(FILE* f, Elf32_Ehdr* eh, uint32_t base_addr) {
+    if (eh->e_shoff == 0) return;
+
+    Elf32_Shdr* sh_tbl = (Elf32_Shdr*)malloc(eh->e_shentsize * eh->e_shnum);
+    if (!sh_tbl) return;
+
+    fseek(f, eh->e_shoff, SEEK_SET);
+    if (fread(sh_tbl, eh->e_shentsize, eh->e_shnum, f) != eh->e_shnum) {
+        free(sh_tbl);
+        return;
+    }
+
+    Elf32_Shdr* symtab_hdr = NULL;
+    Elf32_Shdr* strtab_hdr = NULL;
+
+    for (int i = 0; i < eh->e_shnum; i++) {
+        if (sh_tbl[i].sh_type == SHT_SYMTAB) {
+            symtab_hdr = &sh_tbl[i];
+            strtab_hdr = &sh_tbl[symtab_hdr->sh_link];
+            break;
+        }
+    }
+
+    if (!symtab_hdr) {
+        free(sh_tbl);
+        return;
+    }
+
+    Elf32_Sym* sym_tbl = (Elf32_Sym*)malloc(symtab_hdr->sh_size);
+    char* str_tbl_data = (char*)malloc(strtab_hdr->sh_size);
+    if (!sym_tbl || !str_tbl_data) {
+        free(sh_tbl); free(sym_tbl); free(str_tbl_data);
+        return;
+    }
+
+    fseek(f, symtab_hdr->sh_offset, SEEK_SET);
+    fread(sym_tbl, 1, symtab_hdr->sh_size, f);
+
+    fseek(f, strtab_hdr->sh_offset, SEEK_SET);
+    fread(str_tbl_data, 1, strtab_hdr->sh_size, f);
+
+    int num_symbols = symtab_hdr->sh_size / sizeof(Elf32_Sym);
+    for (int i = 0; i < num_symbols; i++) {
+        const char* name = str_tbl_data + sym_tbl[i].st_name;
+        if (strcmp(name, "tohost") == 0) {
+            g_tohost_addr = base_addr + sym_tbl[i].st_value;
+            break;
+        }
+    }
+
+    free(sh_tbl);
+    free(sym_tbl);
+    free(str_tbl_data);
+}
+
+void find_tohost_64(FILE* f, Elf64_Ehdr* eh, uint64_t base_addr) {
+    if (eh->e_shoff == 0) return;
+
+    Elf64_Shdr* sh_tbl = (Elf64_Shdr*)malloc(eh->e_shentsize * eh->e_shnum);
+    if (!sh_tbl) return;
+
+    fseek(f, eh->e_shoff, SEEK_SET);
+    if (fread(sh_tbl, eh->e_shentsize, eh->e_shnum, f) != eh->e_shnum) {
+        free(sh_tbl);
+        return;
+    }
+
+    Elf64_Shdr* symtab_hdr = NULL;
+    Elf64_Shdr* strtab_hdr = NULL;
+
+    for (int i = 0; i < eh->e_shnum; i++) {
+        if (sh_tbl[i].sh_type == SHT_SYMTAB) {
+            symtab_hdr = &sh_tbl[i];
+            strtab_hdr = &sh_tbl[symtab_hdr->sh_link];
+            break;
+        }
+    }
+
+    if (!symtab_hdr) {
+        free(sh_tbl);
+        return;
+    }
+
+    Elf64_Sym* sym_tbl = (Elf64_Sym*)malloc(symtab_hdr->sh_size);
+    char* str_tbl_data = (char*)malloc(strtab_hdr->sh_size);
+    if (!sym_tbl || !str_tbl_data) {
+        free(sh_tbl); free(sym_tbl); free(str_tbl_data);
+        return;
+    }
+
+    fseek(f, symtab_hdr->sh_offset, SEEK_SET);
+    fread(sym_tbl, 1, symtab_hdr->sh_size, f);
+
+    fseek(f, strtab_hdr->sh_offset, SEEK_SET);
+    fread(str_tbl_data, 1, strtab_hdr->sh_size, f);
+
+    int num_symbols = symtab_hdr->sh_size / sizeof(Elf64_Sym);
+    for (int i = 0; i < num_symbols; i++) {
+        const char* name = str_tbl_data + sym_tbl[i].st_name;
+        if (strcmp(name, "tohost") == 0) {
+            g_tohost_addr = base_addr + sym_tbl[i].st_value;
+            break;
+        }
+    }
+
+    free(sh_tbl);
+    free(sym_tbl);
+    free(str_tbl_data);
+}
 
 // Helper function to load program segments
 static int load_segments_32(emu_t* emu, FILE* f, Elf32_Ehdr* eh, uint32_t base_addr) {
@@ -362,7 +473,7 @@ static int process_dynamic_64(emu_t* emu, FILE* f, Elf64_Ehdr* eh, uint64_t base
     return 1;
 }
 
-int load_elf_ex(emu_t* emu, const char* path, int change_pc, uint64_t force_base) {
+int load_elfex(emu_t* emu, const char* path, int change_pc, uint64_t force_base) {
     FILE* f = fopen(path, "rb");
     if (!f)
         return 0;
@@ -393,16 +504,17 @@ int load_elf_ex(emu_t* emu, const char* path, int change_pc, uint64_t force_base
 
         uint32_t base_addr = 0;
         
-        // For dynamic/PIE executables, use a base address
         if (eh.e_type == ET_DYN) {
-            // Use forced base if provided (truncated to 32-bit), otherwise use default
             base_addr = (force_base != 0) ? (uint32_t)force_base : 0x40000000;
-            printf("Loading PIE/dynamic 32-bit executable at 0x%X\n", base_addr);
         } else if (eh.e_type != ET_EXEC) {
             fprintf(stderr, "Unsupported ELF type: %d\n", eh.e_type);
             fclose(f);
             return 0;
         }
+
+#ifdef EMU_TESTS_ENABLED
+        find_tohost_32(f, &eh, base_addr);
+#endif
 
         if (!load_segments_32(emu, f, &eh, base_addr)) {
             fclose(f);
@@ -439,12 +551,15 @@ int load_elf_ex(emu_t* emu, const char* path, int change_pc, uint64_t force_base
         if (eh.e_type == ET_DYN) {
             // Use forced base if provided, otherwise use default PIE base
             base_addr = (force_base != 0) ? force_base : 0x0000400000000000ULL;
-            printf("Loading PIE/dynamic 64-bit executable at 0x%lX\n", base_addr);
         } else if (eh.e_type != ET_EXEC) {
             fprintf(stderr, "Unsupported ELF type: %d\n", eh.e_type);
             fclose(f);
             return 0;
         }
+
+#ifdef EMU_TESTS_ENABLED
+        find_tohost_64(f, &eh, base_addr);
+#endif
 
         if (!load_segments_64(emu, f, &eh, base_addr)) {
             fclose(f);
@@ -471,11 +586,5 @@ int load_elf_ex(emu_t* emu, const char* path, int change_pc, uint64_t force_base
 
 // Convenience wrapper for normal ELF loading
 int load_elf(emu_t* emu, const char* path, int change_pc) {
-    return load_elf_ex(emu, path, change_pc, 0);
-}
-
-// Special loader for OpenSBI firmware
-int load_opensbi(emu_t* emu, const char* path) {
-    // OpenSBI must be loaded at 0x80000000 for RISC-V M-mode
-    return load_elf_ex(emu, path, 1, 0x80000000);
+    return load_elfex(emu, path, change_pc, 0);
 }

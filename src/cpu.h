@@ -28,10 +28,10 @@ typedef struct {
     uint64_t ssp;               // 0x011
     uint64_t seed;              // 0x015
     uint64_t jvt;               // 0x17
-    uint64_t mcycle;             // 0xC00 (RO)
+    uint64_t mcycle;            // 0xC00 (RO)
     uint64_t time;              // 0xC01 (RO)
-    uint64_t minstret;           // 0xC02 (RO)
-    uint64_t mhpmcounter3[29];   // 0xC03-0xC1F (RO)
+    uint64_t minstret;          // 0xC02 (RO)
+    uint64_t mhpmcounter3[29];  // 0xC03-0xC1F (RO)
 
     // Supervisor
     uint64_t sstatus;           // 0x100

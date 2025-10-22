@@ -6,24 +6,6 @@
 
 #include <stdio.h>
 void cpu_step(cpu_t* cpu) {
-    // printf("Fetch addr: %X", cpu->pc);
-
-    // uint32_t fetch_size = (cpu->pc ) != 0x3? 2 : 4;
-    // // uint32_t fetch_size = 4;
-    // printf("%X, %d\n",  cpu->pc, fetch_size);
-    // uint32_t instr = 0;
-    // if (!va_fetch(cpu, cpu->pc, &instr, fetch_size))
-    //     return;
-
-    // printf("%X: %X\n", cpu->pc, instr);
-
-    // if ((instr & 0x3) != 0x3) {
-    //     instr &= 0xFFFF; // Set upper half to zero
-    //     cpu->npc = cpu->pc + 2;
-    // } else {
-    //     cpu->npc = cpu->pc + 4;
-    // }
-
     uint32_t instr = 0;
     if (!va_fetch(cpu, cpu->pc, &instr, 4))
         return;
@@ -44,8 +26,6 @@ void cpu_step(cpu_t* cpu) {
             return;
         }
     }
-
-    printf("Illegal instruction at 0x%lX: 0x%X\n", cpu->pc, instr);
 
     raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
 }

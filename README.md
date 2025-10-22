@@ -14,7 +14,5 @@ make
 **It is not ready yet.**
 
 ### Todos
-* Add TLB caches for mmu address translation
-* Handle DTB and kernel load address
-* Initialize MMIO sections
+* More testing! (implement spike's proxy kernel like thing for u and s tests)
 * Mimic GPU behavior (emulate VRAM in system memory, then transfer via SDL_Texture)

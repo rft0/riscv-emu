@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "helpers.h"
 #include "mem.h"
 #include "cpu.h"
 
@@ -46,7 +45,7 @@ emu_t* emu_new() {
 
     emu->cpu.pc = SBI_LOAD_ADDR;            // Entry point for the kernel
     emu->cpu.x[10] = 0;                     // a0 = hartid
-    // emu->cpu.x[11] = DTB_LOAD_ADDR;         // a1 = dtb ptr (just after the 1MB ROM)
+    emu->cpu.x[11] = DTB_LOAD_ADDR;         // a1 = payload entry
 
     // Initialize needed CSRs per CPU
     emu->cpu.csr.mstatus = (PRIV_M << 11) | (0b01 << 13);

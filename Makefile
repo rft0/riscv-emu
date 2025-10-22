@@ -5,7 +5,8 @@ OBJ_DIR = obj
 OUT_DIR = bin
 
 # CFLAGS = -D_CRT_SECURE_NO_WARNINGS
-CFLAGS =
+CFLAGS = -DEMU_TESTS_ENABLED
+
 LDFLAGS = -lm
 
 SRCS = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/**/*.c)
@@ -13,7 +14,8 @@ OBJS = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRCS))
 
 TARGET = $(OUT_DIR)/out
 
-all: $(TARGET) run
+all: $(TARGET)
+dev: $(TARGET) run
 
 $(TARGET): $(OBJS) $(OUT_DIR)
 	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
@@ -35,7 +37,6 @@ clean:
 	@rm -rf $(OBJ_DIR) $(OUT_DIR)
 
 run: $(TARGET)
-	./$(TARGET)
+	./$(TARGET) --test tests/isa/rv64ui-p-add 
 
-.PHONY: all clean run
-
+.PHONY: all dev clean run

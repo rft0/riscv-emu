@@ -35,6 +35,8 @@ typedef struct {
     int num_regions;
 } mem_map_t;
 
+extern uint64_t g_tohost_addr;
+
 mem_map_t g_memory_map = { 0 };
 
 static void mem_add_region(uint64_t base, uint64_t size, fn_mem_read read, fn_mem_write write) {
@@ -78,7 +80,7 @@ int sv39_translate(cpu_t* cpu, uint64_t va, access_type_t access, uint64_t* pa_o
     uint64_t satp = cpu->csr.satp;
     uint64_t mode = extract64(satp, 63, 60);
 
-    if (mode != 8) {  // Sv39
+    if (cpu->mode == PRIV_M || mode != 8) {  // Sv39
         *pa_out = va;
         return 1;
     }
@@ -96,10 +98,12 @@ int sv39_translate(cpu_t* cpu, uint64_t va, access_type_t access, uint64_t* pa_o
     
     int level = 0;
     uint64_t pte = 0;
-    for (level = 0; level < 3; level++) {
+    for (level = 2; level >= 0; level--) {
         uint64_t pte_addr = a + vpn[level] * 8;  // 8 bytes per PTE
         if (!phys_read(cpu, pte_addr, &pte, 8))
             return 0;
+
+        printf("SV39: level=%d, pte_addr=0x%lX, pte=0x%lX\n", level, pte_addr, pte);
         
         // Check if PTE is valid
         if (!(pte & PTE_V)) {
@@ -187,8 +191,8 @@ int phys_read(cpu_t* cpu, uint64_t pa, void* out, size_t size) {
     mem_region_t* rgn = find_region(pa);
     //! TODO: Check this
     if (!rgn || pa + size > rgn->base + rgn->size) {
-        printf("(0x%lX)Invalid phys read at 0x%lX\n", cpu->pc, pa);
-        exit(1);
+        // printf("(0x%lX)Invalid phys read at 0x%lX\n", cpu->pc, pa);
+        // exit(1);
         raise_trap(cpu, CAUSE_LOAD_PF, pa, 0);
         return 0;
     }
@@ -203,19 +207,17 @@ int phys_write(cpu_t* cpu, uint64_t pa, void* val, size_t size) {
         return 0;
     }
 
-    if (pa == RISCV_TESTS_TOHOST_ADDR) {
+#ifdef EMU_TESTS_ENABLED
+    if (g_tohost_addr && pa == g_tohost_addr) {
+        // printf("Tohost write: 0x%lX\n", *(uint32_t*)val);
+        emu_free();
         uint32_t value = *(uint32_t*)val;
-        if (value != 0) {
-            if (value == 1) {
-                printf("TEST PASSED\n");
-            } else {
-                uint32_t test_num = value >> 1;
-                printf("TEST FAILED case: %u (tohost=0x%X)\n", 
-                    test_num, value);
-            }
-            emu_stop();
-        }
+        if (value == 1)
+            exit(0);
+        else
+            exit(value >> 1);
     }
+#endif
 
     return rgn->write(pa, val, size);
 }

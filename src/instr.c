@@ -1,6 +1,7 @@
 #include <fenv.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "cpu.h"
 #include "helpers.h"
@@ -8,7 +9,7 @@
 #include "csr.h"
 #include "mem.h"
 
-#define DBG_PRINT(x)       do { printf("\nDBG: 0x%lX\n\n", (uint64_t)(x)); } while(0)
+#define DBG_PRINT(x)       do { prinstf("\nDBG: 0x%lX\n\n", (uint64_t)(x)); } while(0)
 
 #define _RD                 extract32(instr, 11, 7)
 #define _RS1                extract32(instr, 19, 15)
@@ -285,8 +286,8 @@ void exec_cssrw(cpu_t* cpu, uint32_t instr) {
 
     if(!csr_read(cpu, addr, &value))
         return;
-
     SET_RD(value);
+
     csr_write(cpu, addr, RS1);
 }
 
