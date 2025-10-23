@@ -37,6 +37,6 @@ clean:
 	@rm -rf $(OBJ_DIR) $(OUT_DIR)
 
 run: $(TARGET)
-	./$(TARGET) --test tests/isa/rv64ui-p-add 
+	./$(TARGET) --test tests/isa/rv64um-p-divuw
 
 .PHONY: all dev clean run

@@ -81,6 +81,7 @@
 #define CSR_TDATA1                  0x7A1
 #define CSR_TDATA2                  0x7A2
 #define CSR_TDATA3                  0x7A3
+#define CSR_TCONTROL                0x7A5
 #define CSR_MCONTEXT                0x7A8
 #define CSR_DCSR                    0x7B0
 #define CSR_DPC                     0x7B1
@@ -89,5 +90,14 @@
 
 int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val);
 int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out);
+
+static inline void hardwire_mstatus(cpu_t* cpu) {
+    uint64_t mstatus = cpu->csr.mstatus;
+    uint64_t dirty = (((mstatus >> 13) & 3) == 3) ? 1 : 0;
+
+    mstatus &= ~((3ULL << 32) | (3ULL << 34) | (1ULL<< 63));
+    cpu->csr.mstatus = mstatus;
+    cpu->csr.mstatus |= (2ULL << 32) | (2ULL << 34) | (dirty << 63);
+}
 
 #endif

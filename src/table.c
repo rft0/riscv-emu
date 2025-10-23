@@ -1,5 +1,5 @@
 // -----------------------------------------
-// This file is auto-generated. (2025-10-16)
+// This file is auto-generated. (2025-10-22)
 // -----------------------------------------
 
 #include "table.h"
@@ -156,7 +156,7 @@ extern void exec_ld(cpu_t* cpu, uint32_t instr);
 extern void exec_sd(cpu_t* cpu, uint32_t instr);
 extern void exec_addiw(cpu_t* cpu, uint32_t instr);
 extern void exec_fence_i(cpu_t* cpu, uint32_t instr);
-extern void exec_cssrw(cpu_t* cpu, uint32_t instr);
+extern void exec_csrrw(cpu_t* cpu, uint32_t instr);
 extern void exec_csrrs(cpu_t* cpu, uint32_t instr);
 extern void exec_csrrc(cpu_t* cpu, uint32_t instr);
 extern void exec_csrrwi(cpu_t* cpu, uint32_t instr);
@@ -251,9 +251,9 @@ instr_entry_t instr_table[] = {
     {0xFE00707F, 0x40005033, exec_sra},
     {0xFE00707F, 0x00006033, exec_or},
     {0xFE00707F, 0x00007033, exec_and},
-    {0xFE00707F, 0x00001013, exec_slliw},
-    {0xFE00707F, 0x00005013, exec_srliw},
-    {0xFE00707F, 0x40005013, exec_sraiw},
+    {0xFE00707F, 0x0000101B, exec_slliw},
+    {0xFE00707F, 0x0000501B, exec_srliw},
+    {0xFE00707F, 0x4000501B, exec_sraiw},
     {0xFE00707F, 0x0000003B, exec_addw},
     {0xFE00707F, 0x4000003B, exec_subw},
     {0xFE00707F, 0x0000103B, exec_sllw},
@@ -290,7 +290,7 @@ instr_entry_t instr_table[] = {
     {0xFE00707F, 0xA2000053, exec_fle_d},
     {0xFC00707F, 0x00001013, exec_slli},
     {0xFC00707F, 0x00005013, exec_srli},
-    {0xFC00707F, 0x80005013, exec_srai},
+    {0xFC00707F, 0x40005013, exec_srai},
     {0x0000FFFF, 0x00000001, exec_c_nop},
     {0x0000FFFF, 0x00009002, exec_c_ebreak},
     {0xF800707F, 0x1800202F, exec_sc_w},
@@ -357,7 +357,7 @@ instr_entry_t instr_table[] = {
     {0x0000707F, 0x00003023, exec_sd},
     {0x0000707F, 0x0000001B, exec_addiw},
     {0x0000707F, 0x0000100F, exec_fence_i},
-    {0x0000707F, 0x00001073, exec_cssrw},
+    {0x0000707F, 0x00001073, exec_csrrw},
     {0x0000707F, 0x00002073, exec_csrrs},
     {0x0000707F, 0x00003073, exec_csrrc},
     {0x0000707F, 0x00005073, exec_csrrwi},

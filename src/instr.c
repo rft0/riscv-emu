@@ -1,7 +1,7 @@
 #include <fenv.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "cpu.h"
 #include "helpers.h"
@@ -9,7 +9,7 @@
 #include "csr.h"
 #include "mem.h"
 
-#define DBG_PRINT(x)       do { prinstf("\nDBG: 0x%lX\n\n", (uint64_t)(x)); } while(0)
+#define DBG_PRINT(x)       do { printf("\nDBG: 0x%lX\n\n", (uint64_t)(x)); } while(0)
 
 #define _RD                 extract32(instr, 11, 7)
 #define _RS1                extract32(instr, 19, 15)
@@ -43,7 +43,7 @@
 #define C_FRD               (cpu->f[_C_RD + 8])
 
 #define SET_RD(val)         do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
-#define SET_FRD(val)        do { cpu->f[_RD] = (val); } while(0)
+#define SET_FRD(val)        do { cpu->f[_RD] = (val); if (((cpu->csr.mstatus << 13 ) & 3) != 0) cpu->csr.mstatus |= (3ULL << 13); } while(0)
 
 #define C_SET_FRD(val)      do { cpu->f[_C_RD + 8] = (val); } while(0)
 #define C_SET_RD(val)       do { cpu->x[_C_RD + 8] = (val); } while(0)
@@ -55,9 +55,11 @@
 #define IMM_I               sext(extract32(instr, 31, 20), 12)
 #define IMM_S               sext((extract32(instr, 31, 25) << 5) | extract32(instr, 11, 7), 12)
 #define IMM_B               sext((extract32(instr, 31, 31) << 12) | (extract32(instr, 7, 7) << 11) | (extract32(instr, 30, 25) << 5) | (extract32(instr, 11, 8) << 1), 13)
-#define IMM_U               (extract32(instr, 31, 12) << 12)
+#define IMM_U               sext((extract32(instr, 31, 12) << 12), 32)
 #define IMM_J               sext((extract32(instr, 31, 31) << 20) | (extract32(instr, 19, 12) << 12) | (extract32(instr, 20, 20) << 11) | (extract32(instr, 30, 21) << 1), 21)
 #define IMM_CSR             extract32(instr, 31, 20)
+
+#define ZIMM                _RS1
 
 #define IMM_CADDI4SPN       (extract16(instr, 12, 11) << 4  | extract16(instr, 10, 7) << 6 | extract16(instr, 6, 6) << 2 | extract16(instr, 5, 5) << 3)
 // c.fld, c.ld, c.fsd, c.sd
@@ -89,6 +91,12 @@
 #define AMO_AQ              extract32(instr, 26, 26)
 #define AMO_RL              extract32(instr, 25, 25)
 #define RMODE               extract32(instr, 14, 12)
+
+#define CHECK_FPU                                               \
+    if (((cpu->csr.mstatus >> 13) & 3) == 0) {                  \
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);         \
+        return;                                                 \
+    }                                                           \
 
 #define FE_SETUP_RM                                             \
     int rm = RMODE;                                             \
@@ -261,6 +269,7 @@ void exec_or(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_and(cpu_t* cpu, uint32_t instr) {
+    // printf("AND: RS1=0x%lX, RS2=0x%lX\n", RS1, RS2);
     SET_RD(RS1 & RS2);
 }
 
@@ -280,65 +289,94 @@ void exec_fence_i(cpu_t* cpu, uint32_t instr) {
     // No icache, do nothing.
 }
 
-void exec_cssrw(cpu_t* cpu, uint32_t instr) {
+void exec_csrrw(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t value;
+    uint64_t old_val;
 
-    if(!csr_read(cpu, addr, &value))
-        return;
-    SET_RD(value);
+    if (_RD != 0) {
+        if(!csr_read(cpu, addr, &old_val))
+            return;
+    }
 
     csr_write(cpu, addr, RS1);
+    SET_RD(old_val);
 }
 
 void exec_csrrs(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t;
-    if (!csr_read(cpu, addr, &t))
-        return;
+    uint64_t old_val = 0;
+    uint32_t rs1_idx = _RS1;
 
-    SET_RD(t);
-    csr_write(cpu, addr, t | RS1);
+    if (_RD != 0 || rs1_idx != 0) {
+        if (!csr_read(cpu, addr, &old_val))
+            return;
+    }
+
+    if (rs1_idx != 0)
+        csr_write(cpu, addr, old_val | RS1);
+
+    SET_RD(old_val);
 }
 
 void exec_csrrc(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t;
-    if (!csr_read(cpu, addr, &t))
-        return;
+    uint64_t old_val = 0;
+    uint32_t rs1_idx = _RS1;
 
-    SET_RD(t);
-    csr_write(cpu, addr, t & ~RS1);
+    if (_RD != 0 || rs1_idx != 0) {
+        if (!csr_read(cpu, addr, &old_val))
+            return;
+    }
+
+    if (rs1_idx != 0)
+        csr_write(cpu, addr, old_val & ~RS1);
+
+    SET_RD(old_val);
 }
 
 void exec_csrrwi(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t val;
-    if(!csr_read(cpu, addr, &val))
-        return;
+    uint64_t old_val;
 
-    SET_RD(val);
-    csr_write(cpu, addr, _RS1);
+    if (_RD != 0) {
+        if(!csr_read(cpu, addr, &old_val))
+            return;
+    }
+
+    csr_write(cpu, addr, ZIMM);
+    SET_RD(old_val);
 }
 
 void exec_csrrsi(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t;
-    if (!csr_read(cpu, addr, &t))
-        return;
+    uint64_t old_val = 0;
+    uint64_t zimm = ZIMM;
 
-    SET_RD(t);
-    csr_write(cpu, addr, t | _RS1);
+    if (_RD != 0 || zimm != 0) {
+        if (!csr_read(cpu, addr, &old_val))
+            return;
+    }
+
+    if (zimm != 0)
+        csr_write(cpu, addr, old_val | zimm);
+
+    SET_RD(old_val);
 }
 
 void exec_csrrci(cpu_t* cpu, uint32_t instr) {
     uint32_t addr = IMM_CSR;
-    uint64_t t;
-    if (!csr_read(cpu, addr, &t))
-        return;
+    uint64_t old_val = 0;
+    uint64_t zimm = ZIMM;
 
-    SET_RD(t);
-    csr_write(cpu, addr, t & ~_RS1);
+    if (_RD != 0 || zimm != 0) {
+        if (!csr_read(cpu, addr, &old_val))
+            return;
+    }
+
+    if (zimm != 0)
+        csr_write(cpu, addr, old_val & ~zimm);
+
+    SET_RD(old_val);
 }
 
 void exec_ecall(cpu_t* cpu, uint32_t instr) {
@@ -359,47 +397,64 @@ void exec_ebreak(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_sret(cpu_t* cpu, uint32_t instr) {
-    uint64_t sepc;
-    if (!csr_read(cpu, CSR_SEPC, &sepc))
-        return;
-
-    uint64_t sstatus;
-    if (!csr_read(cpu, CSR_SSTATUS, &sstatus))
-        return;
+    uint64_t sstatus = cpu->csr.sstatus;
 
     uint64_t spp = (sstatus >> 8) & 1;
     uint64_t spie = (sstatus >> 5) & 1;
 
-    SET_NPC(sepc);
+    SET_NPC(cpu->csr.sepc);
     cpu->mode = spp ? PRIV_S : PRIV_U;
 
     sstatus = (sstatus & ~0x100UL) | (0UL << 8);    // SPP=U
     sstatus = (sstatus & ~0x2UL) | (spie << 1);     // SIE=SPIE
     sstatus |= (1UL << 5);                          // SPIE=1
 
-    csr_write(cpu, CSR_SSTATUS, sstatus);
+    cpu->csr.sstatus = sstatus;
 }
 
-void exec_mret(cpu_t* cpu, uint32_t instr) {
-    uint64_t mepc;
-    if (!csr_read(cpu, CSR_MEPC, &mepc))
-        return;
+// void exec_mret(cpu_t* cpu, uint32_t instr) {
+//     uint64_t mepc;
+//     if (!csr_read(cpu, CSR_MEPC, &mepc))
+//         return;
 
-    uint64_t mstatus;
-    if (!csr_read(cpu, CSR_MSTATUS, &mstatus))
-        return;
+//     uint64_t mstatus;
+//     if (!csr_read(cpu, CSR_MSTATUS, &mstatus))
+//         return;
+
+//     uint64_t mpp = (mstatus >> 11) & 3;
+//     uint64_t mpie = (mstatus >> 7) & 1;
+
+//     SET_NPC(mepc);
+//     cpu->mode = mpp; // 0=U,1=S,3=M
+
+//     mstatus = (mstatus & ~(3UL << 11));             // MPP=U
+//     mstatus = (mstatus & ~0x8UL) | (mpie << 3);     // MIE=MPIE
+//     mstatus |= (1UL << 7);                          // MPIE=1
+    
+//     csr_write(cpu, CSR_MSTATUS, mstatus);
+// }
+
+void exec_mret(cpu_t* cpu, uint32_t instr) {
+    uint64_t mstatus = cpu->csr.mstatus;
+    uint64_t mepc = cpu->csr.mepc;
 
     uint64_t mpp = (mstatus >> 11) & 3;
     uint64_t mpie = (mstatus >> 7) & 1;
 
     SET_NPC(mepc);
-    cpu->mode = mpp; // 0=U,1=S,3=M
+    cpu->mode = mpp;
 
-    mstatus = (mstatus & ~(3UL << 11));             // MPP=U
-    mstatus = (mstatus & ~0x8UL) | (mpie << 3);     // MIE=MPIE
-    mstatus |= (1UL << 7);                          // MPIE=1
-    
-    csr_write(cpu, CSR_MSTATUS, mstatus);
+    mstatus &= ~(3UL << 11);
+
+    // MIE (bit 3) is set to the value of MPIE
+    mstatus = (mstatus & ~(1UL << 3)) | (mpie << 3);
+
+    // MPIE (bit 7) is set to 1
+    mstatus |= (1UL << 7);
+    // MPRV (bit 17) must be set to 0
+    mstatus &= ~(1UL << 17);
+
+    cpu->csr.mstatus = mstatus;
 }
 
 void exec_wfi(cpu_t* cpu, uint32_t instr) {
@@ -469,8 +524,9 @@ void exec_jal(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_jalr(cpu_t* cpu, uint32_t instr) {
+    uint64_t target = (RS1 + IMM_I) & ~1ULL;
     SET_RD(PC + 4);
-    SET_NPC((RS1 + IMM_I) & ~1);
+    SET_NPC(target);
 }
 
 void exec_beq(cpu_t* cpu, uint32_t instr) {
@@ -483,6 +539,8 @@ void exec_bne(cpu_t* cpu, uint32_t instr) {
     uint64_t rs2 = RS2;
     if (RS1 != RS2)
         SET_NPC(PC + IMM_B);
+
+    // printf("BNE: RS1=0x%lX, RS2=0x%lX\n", rs1, rs2);
 }
 
 void exec_blt(cpu_t* cpu, uint32_t instr) {
@@ -511,8 +569,9 @@ void exec_addiw(cpu_t* cpu, uint32_t instr) {
 void exec_slliw(cpu_t* cpu, uint32_t instr) {
     SET_RD((int64_t)(int32_t)(RS1 << SHAMT));
 }
+
 void exec_srliw(cpu_t* cpu, uint32_t instr) {
-    SET_RD((int64_t)(int32_t)(RS1 >> SHAMT));
+    SET_RD((int64_t)(int32_t)((uint32_t)RS1 >> SHAMT));
 }
 
 void exec_sraiw(cpu_t* cpu, uint32_t instr) {
@@ -529,8 +588,9 @@ void exec_subw(cpu_t* cpu, uint32_t instr) {
 void exec_sllw(cpu_t* cpu, uint32_t instr) {
     SET_RD((int64_t)(int32_t)(RS1 << extract32(RS2, 4, 0)));
 }
+
 void exec_srlw(cpu_t* cpu, uint32_t instr) {
-    SET_RD((int64_t)(int32_t)(RS1 >> extract32(RS2, 4, 0)));
+    SET_RD((int64_t)(int32_t)((uint32_t)RS1 >> extract32(RS2, 4, 0)));
 }
 
 void exec_sraw(cpu_t* cpu, uint32_t instr) {
@@ -939,6 +999,8 @@ void exec_amomaxu_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_flw(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     uint32_t val;
     if (!va_load(cpu, RS1 + IMM_I, &val, 4))
         return;
@@ -947,10 +1009,14 @@ void exec_flw(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsw(cpu_t* cpu, uint32_t instr) {
-    va_store(cpu, RS1 + IMM_S, &RS2, 4);
+    CHECK_FPU;
+
+    va_store(cpu, RS1 + IMM_S, &FRS2, 4);
 }
 
 void exec_fmadd_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), f32_from_fpr(FRS3))));
@@ -960,6 +1026,8 @@ void exec_fmadd_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmsub_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), -f32_from_fpr(FRS3))));
@@ -969,6 +1037,8 @@ void exec_fmsub_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fnmsub_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(-fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), f32_from_fpr(FRS3))));
@@ -978,6 +1048,8 @@ void exec_fnmsub_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fnmadd_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(-fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), -f32_from_fpr(FRS3))));
@@ -987,6 +1059,8 @@ void exec_fnmadd_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fadd_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(f32_from_fpr(FRS1) + f32_from_fpr(FRS2)));
@@ -996,6 +1070,8 @@ void exec_fadd_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsub_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(f32_from_fpr(FRS1) - f32_from_fpr(FRS2)));
@@ -1005,6 +1081,8 @@ void exec_fsub_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmul_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(f32_from_fpr(FRS1) * f32_from_fpr(FRS2)));
@@ -1014,6 +1092,8 @@ void exec_fmul_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fdiv_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(f32_from_fpr(FRS1) / f32_from_fpr(FRS2)));
@@ -1023,6 +1103,8 @@ void exec_fdiv_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsqrt_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr(sqrtf(f32_from_fpr(FRS1))));
@@ -1032,18 +1114,26 @@ void exec_fsqrt_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsgnj_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD(0xFFFFFFFF00000000ULL | ((FRS1 & 0x7FFFFFFF) | (FRS2 & 0x80000000)));
 }
 
 void exec_fsgnjn_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD(0xFFFFFFFF00000000ULL | ((FRS1 & 0x7FFFFFFF) | (~FRS2 & 0x80000000)));
 }
 
 void exec_fsgnjx_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD(0xFFFFFFFF00000000ULL | ((FRS1 & 0x7FFFFFFF) | ((FRS1 ^ FRS2) & 0x80000000)));
 }
 
 void exec_fmin_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_FRD(f32_to_fpr(fminf(f32_from_fpr(FRS1), f32_from_fpr(FRS2))));
@@ -1053,6 +1143,8 @@ void exec_fmin_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmax_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_FRD(f32_to_fpr(fmaxf(f32_from_fpr(FRS1), f32_from_fpr(FRS2))));
@@ -1062,6 +1154,8 @@ void exec_fmax_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_w_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
     
     //! TODO: HANDLE CHECKING INPUT IN ALL CONVERSIONS 
@@ -1073,6 +1167,8 @@ void exec_fcvt_w_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_wu_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
     
     uint32_t res = (uint32_t)nearbyintf(f32_from_fpr(FRS1)); 
@@ -1083,6 +1179,8 @@ void exec_fcvt_wu_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmv_x_v(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD((int64_t)(int32_t)FRS1);
@@ -1092,6 +1190,8 @@ void exec_fmv_x_v(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_feq_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD(f32_from_fpr(FRS1) == f32_from_fpr(FRS2));
@@ -1101,6 +1201,8 @@ void exec_feq_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_flt_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD(f32_from_fpr(FRS1) < f32_from_fpr(FRS2));
@@ -1110,6 +1212,8 @@ void exec_flt_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fle_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD(f32_from_fpr(FRS1) <= f32_from_fpr(FRS2));
@@ -1119,6 +1223,8 @@ void exec_fle_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fclass_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     uint32_t bits = (uint32_t)FRS1;
     
     uint64_t result = 0;
@@ -1155,6 +1261,8 @@ void exec_fclass_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_s_w(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr((float)(int32_t)RS1));
@@ -1164,6 +1272,8 @@ void exec_fcvt_s_w(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_s_wu(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr((float)(uint32_t)RS1));
@@ -1173,10 +1283,14 @@ void exec_fcvt_s_wu(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmv_v_x(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD((uint32_t)(RS1 & 0xFFFFFFFF));
 }
 
 void exec_fcvt_l_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
     
     int64_t res = (int64_t)nearbyintf(f32_from_fpr(FRS1)); 
@@ -1187,6 +1301,8 @@ void exec_fcvt_l_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_lu_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
     
     uint64_t res = (uint64_t)nearbyintf(f32_from_fpr(FRS1)); 
@@ -1197,6 +1313,8 @@ void exec_fcvt_lu_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_s_l(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr((float)(int64_t)RS1));
@@ -1206,6 +1324,8 @@ void exec_fcvt_s_l(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_s_lu(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr((float)(uint64_t)RS1));
@@ -1215,6 +1335,8 @@ void exec_fcvt_s_lu(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fld(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     uint64_t val;
     if (!va_load(cpu, RS1 + IMM_I, &val, 8))
         return;
@@ -1223,10 +1345,14 @@ void exec_fld(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsd(cpu_t* cpu, uint32_t instr) {
-    va_store(cpu, RS1 + IMM_S, &RS2, 8);
+    CHECK_FPU;
+
+    va_store(cpu, RS1 + IMM_S, &FRS2, 8);
 }
 
 void exec_fmadd_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), f64_from_fpr(FRS3))));
@@ -1236,6 +1362,8 @@ void exec_fmadd_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmsub_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), -f64_from_fpr(FRS3))));
@@ -1245,6 +1373,8 @@ void exec_fmsub_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fnmsub_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(-fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), f64_from_fpr(FRS3))));
@@ -1254,6 +1384,8 @@ void exec_fnmsub_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fnmadd_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(-fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), -f64_from_fpr(FRS3))));
@@ -1263,6 +1395,8 @@ void exec_fnmadd_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fadd_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(f64_from_fpr(FRS1) + f64_from_fpr(FRS2)));
@@ -1272,6 +1406,8 @@ void exec_fadd_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsub_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(f64_from_fpr(FRS1) - f64_from_fpr(FRS2)));
@@ -1281,6 +1417,8 @@ void exec_fsub_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmul_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(f64_from_fpr(FRS1) * f64_from_fpr(FRS2)));
@@ -1290,6 +1428,8 @@ void exec_fmul_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fdiv_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(f64_from_fpr(FRS1) / f64_from_fpr(FRS2)));
@@ -1299,6 +1439,8 @@ void exec_fdiv_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsqrt_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr(sqrt(f64_from_fpr(FRS1))));
@@ -1308,18 +1450,26 @@ void exec_fsqrt_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fsgnj_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD((FRS1 & 0x7FFFFFFFFFFFFFFFULL) | (FRS2 & 0x8000000000000000ULL));
 }
 
 void exec_fsgnjn_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD((FRS1 & 0x7FFFFFFFFFFFFFFFULL) | (~FRS2 & 0x8000000000000000ULL));
 }
 
 void exec_fsgnjx_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD((FRS1 & 0x7FFFFFFFFFFFFFFFULL) | ((FRS1 ^ FRS2) & 0x8000000000000000ULL));
 }
 
 void exec_fmin_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_FRD(f64_to_fpr(fmin(f64_from_fpr(FRS1), f64_from_fpr(FRS2))));
@@ -1329,6 +1479,8 @@ void exec_fmin_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmax_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_FRD(f64_to_fpr(fmax(f64_from_fpr(FRS1), f64_from_fpr(FRS2))));
@@ -1338,6 +1490,8 @@ void exec_fmax_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_s_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f32_to_fpr((float)f64_from_fpr(FRS1)));
@@ -1347,6 +1501,8 @@ void exec_fcvt_s_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_d_s(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr((double)f32_from_fpr(FRS1)));
@@ -1356,6 +1512,8 @@ void exec_fcvt_d_s(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_feq_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD(f64_from_fpr(FRS1) == f64_from_fpr(FRS2));
@@ -1365,6 +1523,8 @@ void exec_feq_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_flt_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD(f64_from_fpr(FRS1) < f64_from_fpr(FRS2));
@@ -1374,6 +1534,8 @@ void exec_flt_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fle_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD(f64_from_fpr(FRS1) <= f64_from_fpr(FRS2));
@@ -1383,6 +1545,8 @@ void exec_fle_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fclass_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     uint64_t bits = FRS1;
     
     uint64_t result = 0;
@@ -1419,6 +1583,8 @@ void exec_fclass_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_w_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     int32_t res = (int32_t)nearbyint(f64_from_fpr(FRS1)); 
@@ -1429,6 +1595,8 @@ void exec_fcvt_w_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_wu_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     uint32_t res = (uint32_t)nearbyint(f64_from_fpr(FRS1)); 
@@ -1439,6 +1607,8 @@ void exec_fcvt_wu_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_d_w(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr((double)(int32_t)RS1));
@@ -1448,6 +1618,8 @@ void exec_fcvt_d_w(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_d_wu(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr((double)(uint32_t)RS1));
@@ -1457,6 +1629,8 @@ void exec_fcvt_d_wu(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_l_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     int64_t res = (int64_t)nearbyint(f64_from_fpr(FRS1));
@@ -1467,6 +1641,8 @@ void exec_fcvt_l_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_lu_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     uint64_t res = (uint64_t)nearbyint(f64_from_fpr(FRS1));
@@ -1477,6 +1653,8 @@ void exec_fcvt_lu_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmv_x_d(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_CSR_RM;
 
     SET_RD((int64_t)FRS1);
@@ -1486,6 +1664,8 @@ void exec_fmv_x_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_d_l(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr((double)(int64_t)RS1));
@@ -1495,6 +1675,8 @@ void exec_fcvt_d_l(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fcvt_d_lu(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     FE_SETUP_RM;
 
     SET_FRD(f64_to_fpr((double)(uint64_t)RS1));
@@ -1504,15 +1686,25 @@ void exec_fcvt_d_lu(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_fmv_d_x(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     SET_FRD((uint64_t)RS1);
 }
 
 // (RES, uimm=0)
 void exec_c_addi4spn(cpu_t* cpu, uint32_t instr) {
+    uint16_t uimm = IMM_CADDI4SPN;
+    if (uimm == 0) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
+        return;
+    }
+
     SET_SP(SP + IMM_CADDI4SPN);
 }
 
 void exec_c_fld(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     uint64_t val;
     if (!va_load(cpu, C_RS1 + IMM_CFLD, &val, 8))
         return;
@@ -1537,6 +1729,8 @@ void exec_c_ld(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_fsd(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     va_store(cpu, C_RS1 + IMM_CFLD, &C_FRS2,  8);
 }
 
@@ -1560,6 +1754,11 @@ void exec_c_addi(cpu_t* cpu, uint32_t instr) {
 
 // (RES, rd=0)
 void exec_c_addiw(cpu_t* cpu, uint32_t instr) {
+    if (_RD == 0) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
+        return;
+    }
+
     SET_RD((int64_t)(int32_t)(RS1 + IMM_CI));
 }
 
@@ -1570,13 +1769,25 @@ void exec_c_li(cpu_t* cpu, uint32_t instr) {
 
 // (RES, imm=0)
 void exec_c_addi16sp(cpu_t* cpu, uint32_t instr) {
-    SET_SP(SP + IMM_CADDI16SP);
+    uint16_t imm = IMM_CADDI16SP;
+    if (imm == 0) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
+        return;
+    }
+
+    SET_SP(SP + imm);
 }
 
 // (RES, imm=0; HINT, rd=0)
 void exec_c_lui(cpu_t* cpu, uint32_t instr) {
+    uint16_t imm = IMM_CLUI;
+    if (imm == 0) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
+        return;
+    }
+
     if (RD != 2) {
-        SET_RD(IMM_CLUI);
+        SET_RD(imm);
     }
 }
 
@@ -1638,6 +1849,8 @@ void exec_c_slli(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_fldsp(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     uint64_t val;
     if (!va_load(cpu, SP + IMM_CFLDSP, &val, 8))
         return;
@@ -1647,6 +1860,11 @@ void exec_c_fldsp(cpu_t* cpu, uint32_t instr) {
 
 // (RES, rd=0)
 void exec_c_lwsp(cpu_t* cpu, uint32_t instr) {
+    if (_RD == 0) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
+        return;
+    }
+
     uint32_t val;
     if (!va_load(cpu, SP + IMM_CLWSP, &val, 4))
         return;
@@ -1656,6 +1874,11 @@ void exec_c_lwsp(cpu_t* cpu, uint32_t instr) {
 
 // (RES, rd=0)
 void exec_c_ldsp(cpu_t* cpu, uint32_t instr) {
+    if (_RD == 0) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
+        return;
+    }
+
     uint64_t val;
     if (!va_load(cpu, SP + IMM_CFLDSP, &val, 8))
         return;
@@ -1665,6 +1888,11 @@ void exec_c_ldsp(cpu_t* cpu, uint32_t instr) {
 
 // (RES, rs1=0)
 void exec_c_jr(cpu_t* cpu, uint32_t instr) {
+    if (_RS1 == 0) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
+        return;
+    }
+
     SET_NPC(RS1);
 }
 
@@ -1678,8 +1906,9 @@ void exec_c_ebreak(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_jalr(cpu_t* cpu, uint32_t instr) {
+    uint64_t target = RS1;
     cpu->x[1] = PC + 2;
-    SET_NPC(RS1);
+    SET_NPC(target);
 }
 
 // (HINT, rd=0)
@@ -1688,6 +1917,8 @@ void exec_c_add(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_fsdsp(cpu_t* cpu, uint32_t instr) {
+    CHECK_FPU;
+
     va_store(cpu, SP + IMM_CFSDSP, &FRS2, 8);
 }
 

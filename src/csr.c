@@ -90,6 +90,7 @@ int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
         case CSR_TDATA1:        *out = cpu->csr.tdata1; break;
         case CSR_TDATA2:        *out = cpu->csr.tdata2; break;
         case CSR_TDATA3:        *out = cpu->csr.tdata3; break;
+        case CSR_TCONTROL:      *out = cpu->csr.tcontrol; break;
         case CSR_MCONTEXT:      *out = cpu->csr.mcontext; break;
         case CSR_DCSR:          *out = cpu->csr.dcsr; break;
         case CSR_DPC:           *out = cpu->csr.dpc; break;
@@ -173,7 +174,7 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
         case CSR_MIMPID:        break;
         case CSR_MHARTID:       break;
         case CSR_MCONFIGPTR:    break;
-        case CSR_MSTATUS:       cpu->csr.mstatus = val; break;
+        case CSR_MSTATUS:       { cpu->csr.mstatus = val; hardwire_mstatus(cpu); } break;
         case CSR_MISA:          cpu->csr.misa = val; break;
         case CSR_MEDELEG:       cpu->csr.medeleg = val; break;
         case CSR_MIDELEG:       cpu->csr.mideleg = val; break;
@@ -206,6 +207,7 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
         case CSR_TDATA1:        cpu->csr.tdata1 = val; break;
         case CSR_TDATA2:        cpu->csr.tdata2 = val; break;
         case CSR_TDATA3:        cpu->csr.tdata3 = val; break;
+        case CSR_TCONTROL:      cpu->csr.tcontrol = val; break;
         case CSR_MCONTEXT:      cpu->csr.mcontext = val; break;
         case CSR_DCSR:          cpu->csr.dcsr = val; break;
         case CSR_DPC:           cpu->csr.dpc = val; break;

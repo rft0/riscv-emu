@@ -28,7 +28,7 @@ def run_tests(emulator_path, tests_dir):
     # test_files = sorted([f for f in os.listdir(tests_dir) if os.path.isfile(os.path.join(tests_dir, f))])
     test_files = []
     for file in os.listdir(tests_dir):
-        # REMOVE THIS LATER ON ME
+        # REMOVE THIS LATER ON, ME.
         if "-v-" in file:
             continue
 

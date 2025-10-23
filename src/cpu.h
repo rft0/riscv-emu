@@ -93,6 +93,7 @@ typedef struct {
     uint64_t tdata1;            // 0x7A1
     uint64_t tdata2;            // 0x7A2
     uint64_t tdata3;            // 0x7A3
+    uint64_t tcontrol;          // 0x7A5
     uint64_t mcontext;          // 0x7A8
     uint64_t dcsr;              // 0x7B0
     uint64_t dpc;               // 0x7B1
@@ -118,5 +119,7 @@ typedef struct {
 
 void cpu_step(cpu_t* cpu);
 void cpu_dump(cpu_t* cpu);
+
+int cpu_check_interrupts(cpu_t* cpu);
 
 #endif

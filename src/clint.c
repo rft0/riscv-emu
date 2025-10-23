@@ -21,15 +21,14 @@ static uint32_t msip[HART_COUNT];
 
 static uint64_t mtime = 0;
 
-void clint_tick(cpu_t* cpu, uint64_t cycles) {
-    mtime += cycles; // Does the job for now
-
-    if (mtime >= mtimecmp[cpu->csr.mhartid])
-        cpu->csr.mip |= MIP_MTIP;
-    else
-        cpu->csr.mip &= ~MIP_MTIP;
+void clint_tick(uint64_t increment) {
+    mtime += increment;
 }
 
+void clint_update(cpu_t* cpu) {
+    if (mtime >= mtimecmp[cpu->csr.mhartid])
+        cpu->csr.mip |= MIP_MTIP;    
+}
 
 int clint_read(uint64_t addr, void* out, size_t size) {
     uint64_t offset = addr - CLINT_BASE;
