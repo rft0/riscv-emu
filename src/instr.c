@@ -16,9 +16,10 @@
 #define _RS2                extract32(instr, 24, 20)
 #define _RS3                extract32(instr, 31, 27)
 
-#define _C_RD               extract16(instr, 4, 2)
-#define _C_RS1              extract16(instr, 9, 7)  
-#define _C_RS2              extract16(instr, 4, 2)
+#define _C_RD               extract32(instr, 4, 2)
+#define _C_RS1              extract32(instr, 9, 7)  
+#define _C_RS2              extract32(instr, 4, 2)
+#define _C_WIDE_RS2         extract32(instr, 6, 2)
 
 #define PC                  (cpu->pc)
 #define NPC                 (cpu->npc)
@@ -37,15 +38,18 @@
 #define C_RD                (cpu->x[_C_RD + 8])
 #define C_RS1               (cpu->x[_C_RS1 + 8])
 #define C_RS2               (cpu->x[_C_RS2 + 8])
+#define C_WIDE_RS2           (cpu->x[_C_WIDE_RS2])
 
 #define C_FRS1              (cpu->f[_C_RS1 + 8])
 #define C_FRS2              (cpu->f[_C_RS2 + 8]) 
+#define C_WIDE_FRS2         (cpu->f[_C_WIDE_RS2])
 #define C_FRD               (cpu->f[_C_RD + 8])
-
+            
 #define SET_RD(val)         do { if (_RD != 0) cpu->x[_RD] = (val); } while(0)
 #define SET_FRD(val)        do { cpu->f[_RD] = (val); if (((cpu->csr.mstatus << 13 ) & 3) != 0) cpu->csr.mstatus |= (3ULL << 13); } while(0)
 
 #define C_SET_FRD(val)      do { cpu->f[_C_RD + 8] = (val); } while(0)
+#define C_SET_RS1(val)      do { cpu->x[_C_RS1 + 8] = (val); } while(0)
 #define C_SET_RD(val)       do { cpu->x[_C_RD + 8] = (val); } while(0)
 
 #define SET_PC(val)         (cpu->pc = (val))
@@ -61,29 +65,29 @@
 
 #define ZIMM                _RS1
 
-#define IMM_CADDI4SPN       (extract16(instr, 12, 11) << 4  | extract16(instr, 10, 7) << 6 | extract16(instr, 6, 6) << 2 | extract16(instr, 5, 5) << 3)
+#define IMM_CADDI4SPN       (extract32(instr, 12, 11) << 4  | extract32(instr, 10, 7) << 6 | extract32(instr, 6, 6) << 2 | extract32(instr, 5, 5) << 3)
 // c.fld, c.ld, c.fsd, c.sd
-#define IMM_CFLD            (extract16(instr, 12, 10) << 3 | extract16(instr, 6, 5) << 6)
+#define IMM_CFLD            (extract32(instr, 12, 10) << 3 | extract32(instr, 6, 5) << 6)
 // c.lw, c.sw
-#define IMM_CLW             (extract16(instr, 12, 10) << 3 | extract16(instr, 6, 6) << 2 | extract16(instr, 5, 5) << 6 )
+#define IMM_CLW             (extract32(instr, 12, 10) << 3 | extract32(instr, 6, 6) << 2 | extract32(instr, 5, 5) << 6 )
 // c.nop, c.addi, c.addiw, c.li
-#define IMM_CI              sext(extract16(instr, 12, 12) << 5 | extract16(instr, 6, 2), 6)
+#define IMM_CI              sext(extract32(instr, 12, 12) << 5 | extract32(instr, 6, 2), 6)
 // c.j, c.jal
-#define IMM_CJ              sext((extract16(instr, 12, 12) << 11 | extract16(instr, 11, 11) << 4 | extract16(instr, 10, 9) << 8 | extract16(instr, 8, 8) << 10 | extract16(instr, 7, 7) << 6 | extract16(instr, 6, 6) << 7 | extract16(instr, 5, 3) << 1 | extract16(instr, 2, 2) << 5), 12)
-#define IMM_CADDI16SP       sext((extract16(instr, 12, 12) << 9 | extract16(instr, 6, 6) << 4 | extract16(instr, 5, 5) << 6 | extract16(instr, 4, 3) << 7 | extract16(instr, 2, 2) << 5), 10)
-#define IMM_CLUI            sext((extract16(instr, 12, 12) << 17 | extract16(instr, 6, 2) << 12), 18)
-// c.srli, c.srai, c.slli (nzuimm)
-#define IMM_CUI             (extract16(instr, 12, 12) << 5 | extract16(instr, 6 , 2))
+#define IMM_CJ              sext((extract32(instr, 12, 12) << 11 | extract32(instr, 11, 11) << 4 | extract32(instr, 10, 9) << 8 | extract32(instr, 8, 8) << 10 | extract32(instr, 7, 7) << 6 | extract32(instr, 6, 6) << 7 | extract32(instr, 5, 3) << 1 | extract32(instr, 2, 2) << 5), 12)
+#define IMM_CADDI16SP       sext((extract32(instr, 12, 12) << 9 | extract32(instr, 6, 6) << 4 | extract32(instr, 5, 5) << 6 | extract32(instr, 4, 3) << 7 | extract32(instr, 2, 2) << 5), 10)
+#define IMM_CLUI            sext((extract32(instr, 12, 12) << 17 | extract32(instr, 6, 2) << 12), 18)
+// c.srli, c.srai, c.slli
+#define IMM_CUI             (extract32(instr, 12, 12) << 5 | extract32(instr, 6 , 2))
 // c.beqz, c.bnez
-#define IMM_CB              sext((extract16(instr, 12, 12) << 8 | extract16(instr, 11, 10) << 3 | extract16(instr, 6, 5) << 6 | extract16(instr, 4, 3) << 1 | extract16(instr, 2, 2) << 5), 9)
+#define IMM_CB              sext((extract32(instr, 12, 12) << 8 | extract32(instr, 11, 10) << 3 | extract32(instr, 6, 5) << 6 | extract32(instr, 4, 3) << 1 | extract32(instr, 2, 2) << 5), 9)
 // c.fldsp, c.ldsp
-#define IMM_CFLDSP          (extract16(instr, 12, 12) << 5 | extract16(instr, 6, 5) << 3 | extract16(instr, 4, 2) << 6)
+#define IMM_CFLDSP          (extract32(instr, 12, 12) << 5 | extract32(instr, 6, 5) << 3 | extract32(instr, 4, 2) << 6)
 // c.lwsp
-#define IMM_CLWSP           (extract16(instr, 12, 12) << 5 | extract16(instr, 6, 4) << 2 | extract16(instr, 3, 2) << 6)
+#define IMM_CLWSP           (extract32(instr, 12, 12) << 5 | extract32(instr, 6, 4) << 2 | extract32(instr, 3, 2) << 6)
 // c.fsdsp, c.sdsp
-#define IMM_CFSDSP          (extract16(instr, 12, 10) << 3 | extract16(instr, 9, 7) << 6)
+#define IMM_CFSDSP          (extract32(instr, 12, 10) << 3 | extract32(instr, 9, 7) << 6)
 // c.swsp, c.fswsp
-#define IMM_CSWSP           (extract16(instr, 12, 9) << 2 | extract16(instr, 8, 7) << 6)
+#define IMM_CSWSP           (extract32(instr, 12, 9) << 2 | extract32(instr, 8, 7) << 6)
 
 #define SHAMTRV64           extract32(instr, 25, 20)
 #define SHAMT               extract32(instr, 24, 20)
@@ -269,7 +273,6 @@ void exec_or(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_and(cpu_t* cpu, uint32_t instr) {
-    // printf("AND: RS1=0x%lX, RS2=0x%lX\n", RS1, RS2);
     SET_RD(RS1 & RS2);
 }
 
@@ -397,7 +400,12 @@ void exec_ebreak(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_sret(cpu_t* cpu, uint32_t instr) {
-    uint64_t sstatus = cpu->csr.sstatus;
+    if ((cpu->csr.mstatus >> 22) & 1) {
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, 0, 0);
+        return;
+    }
+
+    uint64_t sstatus = csr_read_sstatus(cpu);
 
     uint64_t spp = (sstatus >> 8) & 1;
     uint64_t spie = (sstatus >> 5) & 1;
@@ -409,7 +417,7 @@ void exec_sret(cpu_t* cpu, uint32_t instr) {
     sstatus = (sstatus & ~0x2UL) | (spie << 1);     // SIE=SPIE
     sstatus |= (1UL << 5);                          // SPIE=1
 
-    cpu->csr.sstatus = sstatus;
+    csr_write_sstatus(cpu, sstatus);
 }
 
 // void exec_mret(cpu_t* cpu, uint32_t instr) {
@@ -463,7 +471,15 @@ void exec_wfi(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_sfence_vma(cpu_t* cpu, uint32_t instr) {
-    //! TODO: YET TO BE IMPLEMENTED
+    uint64_t tw = (cpu->csr.mstatus >> 20) & 1;
+    if (cpu->mode == PRIV_S && tw == 1) {
+        // SET_NPC(PC);
+        raise_trap(cpu, CAUSE_ILLEGAL_INSTR, 0, 0);
+        return;
+    }
+
+    // Else normal sfence.vma behaviour
+    // Does nothing.
 }
 
 void exec_lb(cpu_t* cpu, uint32_t instr) {
@@ -515,6 +531,7 @@ void exec_sh(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_sw(cpu_t* cpu, uint32_t instr) {
+    printf("PC: 0x%lX, GP: %lu\n", cpu->pc, cpu->x[3]);
     va_store(cpu, RS1 + IMM_S, &RS2, 4);
 }
 
@@ -540,7 +557,7 @@ void exec_bne(cpu_t* cpu, uint32_t instr) {
     if (RS1 != RS2)
         SET_NPC(PC + IMM_B);
 
-    // printf("BNE: RS1=0x%lX, RS2=0x%lX\n", rs1, rs2);
+    printf("BNE, RS1: 0x%lX, RS2: 0x%lX\n", RS1, RS2);
 }
 
 void exec_blt(cpu_t* cpu, uint32_t instr) {
@@ -704,9 +721,9 @@ void exec_divuw(cpu_t* cpu, uint32_t instr) {
     uint32_t divisor = (uint32_t)RS2;
     
     if (divisor == 0)
-        SET_RD(UINT32_MAX);
+        SET_RD(UINT64_MAX);
     else
-        SET_RD((int64_t)(uint32_t)(dividend / divisor));
+        SET_RD((int64_t)(int32_t)(dividend / divisor));
 }
 
 void exec_remw(cpu_t* cpu, uint32_t instr) {
@@ -726,9 +743,9 @@ void exec_remuw(cpu_t* cpu, uint32_t instr) {
     uint32_t divisor = (uint32_t)RS2;
     
     if (divisor == 0)
-        SET_RD((int64_t)dividend);
+        SET_RD((int64_t)(int32_t)dividend);
     else
-        SET_RD((int64_t)(uint32_t)(dividend % divisor));
+        SET_RD((int64_t)(int32_t)(dividend % divisor));
 }
 
 // Ignore aq and rl for single core
@@ -1695,11 +1712,12 @@ void exec_fmv_d_x(cpu_t* cpu, uint32_t instr) {
 void exec_c_addi4spn(cpu_t* cpu, uint32_t instr) {
     uint16_t uimm = IMM_CADDI4SPN;
     if (uimm == 0) {
+        // SET_NPC(PC);
         raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
         return;
     }
 
-    SET_SP(SP + IMM_CADDI4SPN);
+    C_SET_RD(uimm + SP);
 }
 
 void exec_c_fld(cpu_t* cpu, uint32_t instr) {
@@ -1714,18 +1732,18 @@ void exec_c_fld(cpu_t* cpu, uint32_t instr) {
 
 void exec_c_lw(cpu_t* cpu, uint32_t instr) {
     uint32_t val;
-    if (!va_load(cpu, RS1 + IMM_I, &val, 4))
+    if (!va_load(cpu, C_RS1 + IMM_CLW, &val, 4))
         return;
 
-    SET_RD((int64_t)(int32_t)val);
+    C_SET_RD((int64_t)(int32_t)val);
 }
 
 void exec_c_ld(cpu_t* cpu, uint32_t instr) {
     uint64_t val;
-    if (!va_load(cpu, RS1 + IMM_I, &val, 8))
+    if (!va_load(cpu, C_RS1 + IMM_CFLD, &val, 8))
         return;
 
-    SET_RD(val);
+    C_SET_RD(val);
 }
 
 void exec_c_fsd(cpu_t* cpu, uint32_t instr) {
@@ -1735,11 +1753,13 @@ void exec_c_fsd(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_sw(cpu_t* cpu, uint32_t instr) {
-    va_store(cpu, C_RS1 + IMM_CLW, &RS2, 4);
+
+
+    va_store(cpu, C_RS1 + IMM_CLW, &C_RS2, 4);
 }
 
 void exec_c_sd(cpu_t* cpu, uint32_t instr) {
-    va_store(cpu, C_RS1 + IMM_CFLD, &RS2, 8);
+    va_store(cpu, C_RS1 + IMM_CFLD, &C_RS2, 8);
 }
 
 // (HINT, imm!=0)
@@ -1749,17 +1769,18 @@ void exec_c_nop(cpu_t* cpu, uint32_t instr) {
 
 // (HINT, imm=0)
 void exec_c_addi(cpu_t* cpu, uint32_t instr) {
-    SET_RD(RS1 + IMM_CI);
+    SET_RD(RD + IMM_CI);
 }
 
 // (RES, rd=0)
 void exec_c_addiw(cpu_t* cpu, uint32_t instr) {
     if (_RD == 0) {
+        // SET_NPC(PC);
         raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
         return;
     }
 
-    SET_RD((int64_t)(int32_t)(RS1 + IMM_CI));
+    SET_RD((int64_t)(int32_t)(RD + IMM_CI));
 }
 
 // (HINT, rd=0)
@@ -1769,8 +1790,9 @@ void exec_c_li(cpu_t* cpu, uint32_t instr) {
 
 // (RES, imm=0)
 void exec_c_addi16sp(cpu_t* cpu, uint32_t instr) {
-    uint16_t imm = IMM_CADDI16SP;
+    int16_t imm = IMM_CADDI16SP;
     if (imm == 0) {
+        // SET_NPC(PC);
         raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
         return;
     }
@@ -1780,53 +1802,53 @@ void exec_c_addi16sp(cpu_t* cpu, uint32_t instr) {
 
 // (RES, imm=0; HINT, rd=0)
 void exec_c_lui(cpu_t* cpu, uint32_t instr) {
-    uint16_t imm = IMM_CLUI;
+    uint64_t imm = IMM_CLUI;
+
     if (imm == 0) {
+        // SET_NPC(PC);
         raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
         return;
     }
 
-    if (RD != 2) {
-        SET_RD(imm);
-    }
+    SET_RD(imm);
 }
 
 // (HINT, uimm=0)
 void exec_c_srli(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD(C_RD >> IMM_CUI);
+    C_SET_RS1(C_RS1 >> (IMM_CUI & 0x3F));
 }
 
 // (HINT, uimm=0)
 void exec_c_srai(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD((int64_t)(C_RD >> IMM_CUI));
+    C_SET_RS1((int64_t)C_RS1 >> (IMM_CUI & 0x3F));
 }
 
 void exec_c_andi(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD(C_RD & IMM_CI);
+    C_SET_RS1(C_RS1 & IMM_CI);
 }
 
 void exec_c_sub(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD(C_RD - C_RS2);
+    C_SET_RS1(C_RS1 - C_RS2);
 }
 
 void exec_c_xor(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD(C_RD ^ C_RS2);
+    C_SET_RS1(C_RS1 ^ C_RS2);
 }
 
 void exec_c_or(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD(C_RD | C_RS2);
+    C_SET_RS1(C_RS1 | C_RS2);
 }
 
 void exec_c_and(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD(C_RD & C_RS2);
+    C_SET_RS1(C_RS1 & C_RS2);
 }
 
 void exec_c_subw(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD((int64_t)(int32_t)(C_RD - C_RS2));
+    C_SET_RS1((int64_t)(int32_t)(C_RS1 - C_RS2));
 }
 
 void exec_c_addw(cpu_t* cpu, uint32_t instr) {
-    C_SET_RD((int64_t)(int32_t)(C_RD + C_RS2));
+    C_SET_RS1((int64_t)(int32_t)(C_RS1 + C_RS2));
 }
 
 void exec_c_j(cpu_t* cpu, uint32_t instr) {
@@ -1845,7 +1867,7 @@ void exec_c_bnez(cpu_t* cpu, uint32_t instr) {
 
 // (HINT, rd=0 or imm=0)
 void exec_c_slli(cpu_t* cpu, uint32_t instr) {
-    SET_RD(RS1 << IMM_CUI);
+    SET_RD(RD << IMM_CUI);
 }
 
 void exec_c_fldsp(cpu_t* cpu, uint32_t instr) {
@@ -1861,6 +1883,7 @@ void exec_c_fldsp(cpu_t* cpu, uint32_t instr) {
 // (RES, rd=0)
 void exec_c_lwsp(cpu_t* cpu, uint32_t instr) {
     if (_RD == 0) {
+        // SET_NPC(PC);
         raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
         return;
     }
@@ -1875,6 +1898,7 @@ void exec_c_lwsp(cpu_t* cpu, uint32_t instr) {
 // (RES, rd=0)
 void exec_c_ldsp(cpu_t* cpu, uint32_t instr) {
     if (_RD == 0) {
+        // SET_NPC(PC);
         raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
         return;
     }
@@ -1889,16 +1913,17 @@ void exec_c_ldsp(cpu_t* cpu, uint32_t instr) {
 // (RES, rs1=0)
 void exec_c_jr(cpu_t* cpu, uint32_t instr) {
     if (_RS1 == 0) {
+        // SET_NPC(PC);
         raise_trap(cpu, CAUSE_ILLEGAL_INSTR, instr, 0);
         return;
     }
 
-    SET_NPC(RS1);
+    SET_NPC(RD);
 }
 
 // (HINT, rd=0)
 void exec_c_mv(cpu_t* cpu, uint32_t instr) {
-    SET_RD(RS2);
+    SET_RD(C_WIDE_RS2);
 }
 
 void exec_c_ebreak(cpu_t* cpu, uint32_t instr) {
@@ -1906,26 +1931,26 @@ void exec_c_ebreak(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_c_jalr(cpu_t* cpu, uint32_t instr) {
-    uint64_t target = RS1;
+    uint64_t target = RD;
     cpu->x[1] = PC + 2;
     SET_NPC(target);
 }
 
 // (HINT, rd=0)
 void exec_c_add(cpu_t* cpu, uint32_t instr) {
-    SET_RD(RD + RS2);
+    SET_RD(RD + C_WIDE_RS2);
 }
 
 void exec_c_fsdsp(cpu_t* cpu, uint32_t instr) {
     CHECK_FPU;
 
-    va_store(cpu, SP + IMM_CFSDSP, &FRS2, 8);
+    va_store(cpu, SP + IMM_CFSDSP, &C_WIDE_FRS2, 8);
 }
 
 void exec_c_swsp(cpu_t* cpu, uint32_t instr) {
-    va_store(cpu, SP + IMM_CSWSP, &RS2, 4);
+    va_store(cpu, SP + IMM_CSWSP, &C_WIDE_RS2, 4);
 }
 
 void exec_c_sdsp(cpu_t* cpu, uint32_t instr) {
-    va_store(cpu, SP + IMM_CFSDSP, &RS2, 8);
+    va_store(cpu, SP + IMM_CFSDSP, &C_WIDE_RS2, 8);
 }

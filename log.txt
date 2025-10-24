@@ -1,12 +1,9 @@
-[  1/135] FAILED (case 2) : rv64mi-p-breakpoint
 [  2/135] PASSED : rv64mi-p-csr
-[  3/135] FAILED (case 2) : rv64mi-p-illegal
 [  4/135] PASSED : rv64mi-p-instret_overflow
 [  5/135] PASSED : rv64mi-p-ld-misaligned
 [  6/135] PASSED : rv64mi-p-lh-misaligned
 [  7/135] PASSED : rv64mi-p-lw-misaligned
 [  8/135] PASSED : rv64mi-p-ma_addr
-[  9/135] TIMEOUT: rv64mi-p-ma_fetch
 [ 10/135] PASSED : rv64mi-p-mcsr
 [ 11/135] PASSED : rv64mi-p-pmpaddr
 [ 12/135] PASSED : rv64mi-p-sbreak
@@ -21,7 +18,7 @@ SV39: level=2, pte_addr=0x80002000, pte=0x20000C01
 SV39: level=1, pte_addr=0x80003000, pte=0x20001001
 SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
 [ 20/135] TIMEOUT: rv64si-p-icache-alias
-[ 21/135] TIMEOUT: rv64si-p-ma_fetch
+[ 21/135] PASSED : rv64si-p-ma_fetch
 [ 22/135] PASSED : rv64si-p-sbreak
 [ 23/135] PASSED : rv64si-p-scall
 [ 24/135] PASSED : rv64si-p-wfi
@@ -45,7 +42,7 @@ SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
 [ 42/135] PASSED : rv64ua-p-amoxor_d
 [ 43/135] PASSED : rv64ua-p-amoxor_w
 [ 44/135] PASSED : rv64ua-p-lrsc
-[ 45/135] FAILED (case 3) : rv64uc-p-rvc
+[ 45/135] PASSED : rv64uc-p-rvc
 [ 46/135] FAILED (case 2) : rv64ud-p-fadd
 [ 47/135] PASSED : rv64ud-p-fclass
 [ 48/135] FAILED (case 2) : rv64ud-p-fcmp
@@ -84,7 +81,7 @@ SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
 [ 81/135] PASSED : rv64ui-p-bne
 [ 82/135] PASSED : rv64ui-p-fence_i
 [ 83/135] PASSED : rv64ui-p-jal
-[ 84/135] FAILED (case 3) : rv64ui-p-jalr
+[ 84/135] PASSED : rv64ui-p-jalr
 [ 85/135] PASSED : rv64ui-p-lb
 [ 86/135] PASSED : rv64ui-p-lbu
 [ 87/135] PASSED : rv64ui-p-ld
@@ -94,7 +91,6 @@ SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
 [ 91/135] PASSED : rv64ui-p-lui
 [ 92/135] PASSED : rv64ui-p-lw
 [ 93/135] PASSED : rv64ui-p-lwu
-[ 94/135] FAILED (case 156) : rv64ui-p-ma_data
 [ 95/135] PASSED : rv64ui-p-or
 [ 96/135] PASSED : rv64ui-p-ori
 [ 97/135] PASSED : rv64ui-p-sb
@@ -115,6 +111,8 @@ SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
 [112/135] PASSED : rv64ui-p-sraw
 [113/135] PASSED : rv64ui-p-srl
 [114/135] PASSED : rv64ui-p-srli
+[115/135] PASSED : rv64ui-p-srliw
+[116/135] PASSED : rv64ui-p-srlw
 [117/135] PASSED : rv64ui-p-st_ld
 [118/135] PASSED : rv64ui-p-sub
 [119/135] PASSED : rv64ui-p-subw
@@ -123,7 +121,7 @@ SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
 [122/135] PASSED : rv64ui-p-xori
 [123/135] PASSED : rv64um-p-div
 [124/135] PASSED : rv64um-p-divu
-[125/135] FAILED (case 6) : rv64um-p-divuw
+[125/135] PASSED : rv64um-p-divuw
 [126/135] PASSED : rv64um-p-divw
 [127/135] PASSED : rv64um-p-mul
 [128/135] PASSED : rv64um-p-mulh
@@ -132,5 +130,5 @@ SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
 [131/135] PASSED : rv64um-p-mulw
 [132/135] PASSED : rv64um-p-rem
 [133/135] PASSED : rv64um-p-remu
-[134/135] FAILED (case 5) : rv64um-p-remuw
+[134/135] PASSED : rv64um-p-remuw
 [135/135] PASSED : rv64um-p-remw

@@ -1,18 +1,24 @@
 #include "trap.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "csr.h"
 
 void raise_trap(cpu_t* cpu, uint64_t cause, uint64_t tval, int is_interrupt) {
+    cpu->trapped = 1;
+
     uint64_t medeleg = cpu->csr.medeleg;
     int delegate = 0;
 
-    // printf("trap: cause=%lu, tval=%lx, is_interrupt=%d, mode=%d\n", cause, tval, is_interrupt, cpu->mode);
+    printf("trap: cause=0x%lX, tval=%lx, is_interrupt=%d, mode=%d\n", cause, tval, is_interrupt, cpu->mode);
+    // exit(0);
 
     if (!is_interrupt && cpu->mode <= PRIV_S && (medeleg >> cause) & 1)
         delegate = 1;
 
     if (delegate) {
-        uint64_t sstatus = cpu->csr.sstatus;
+        uint64_t sstatus = csr_read_sstatus(cpu);
 
         cpu->csr.sepc = cpu->pc;
         cpu->csr.scause = cause | ((uint64_t)is_interrupt << 63);
@@ -22,13 +28,13 @@ void raise_trap(cpu_t* cpu, uint64_t cause, uint64_t tval, int is_interrupt) {
         sstatus = (sstatus & ~(1UL << 8)) | ((spp & 1) << 8);  // SPP
         sstatus = (sstatus & ~(1UL << 5)) | (((sstatus >> 1) & 1) << 5); // SPIE = SIE
         sstatus &= ~0x2UL; // SIE = 0
-        cpu->csr.sstatus = sstatus;
+        csr_write_sstatus(cpu, sstatus);
 
         uint64_t stvec = cpu->csr.stvec;
         if ((stvec & 1) == 0)
             cpu->npc = stvec;
         else
-            cpu->npc = (stvec & ~0x3) + 4 * cause; // vectored
+            cpu->npc = (stvec & ~0x3) + 4 * (cause & 0x7FFFFFFFFFFFFFFF);
 
         cpu->mode = PRIV_S;
     } else {
@@ -48,7 +54,7 @@ void raise_trap(cpu_t* cpu, uint64_t cause, uint64_t tval, int is_interrupt) {
         if ((mtvec & 1) == 0)
             cpu->npc = mtvec;
         else
-            cpu->npc = (mtvec & ~0x3) + 4 * cause;
+            cpu->npc = (mtvec & ~0x3) + 4 * (cause & 0x7FFFFFFFFFFFFFFF);
 
         cpu->mode = PRIV_M;
     }

@@ -57,7 +57,7 @@ def run_tests(emulator_path, tests_dir):
                 command,
                 capture_output=False,
                 text=True,
-                timeout=5
+                timeout=3
             )
 
             if result.returncode == 0:

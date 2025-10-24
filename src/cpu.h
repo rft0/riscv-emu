@@ -34,7 +34,7 @@ typedef struct {
     uint64_t mhpmcounter3[29];  // 0xC03-0xC1F (RO)
 
     // Supervisor
-    uint64_t sstatus;           // 0x100
+    // uint64_t sstatus;           // 0x100, just a mirror of mstatus
     uint64_t sie;               // 0x104
     uint64_t stvec;             // 0x105
     uint64_t scounteren;        // 0x106
@@ -104,6 +104,7 @@ typedef struct {
 typedef struct {
     uint8_t halted;
     uint8_t mode;
+    uint8_t trapped;
 
     uint64_t x[32];
     uint64_t f[32];

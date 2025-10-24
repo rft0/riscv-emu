@@ -7,6 +7,15 @@
 // IMPLEMENTING CSRS LIKE THIS WAS A BIG MISTAKE JUST CREATE A FLAT 4096 BYTE ARRAY NEXT TIME
 // BUT TOO MANY THINGS DEPEND ON CURRENT SETUP SO LET IT BE FOR NOW
 // Note ends.
+static inline void hardwire_mstatus(cpu_t* cpu) {
+    uint64_t mstatus = cpu->csr.mstatus;
+    uint64_t dirty = (((mstatus >> 13) & 3) == 3) ? 1 : 0;
+
+    mstatus &= ~((3ULL << 32) | (3ULL << 34) | (1ULL<< 63));
+    cpu->csr.mstatus = mstatus;
+    cpu->csr.mstatus |= (2ULL << 32) | (2ULL << 34) | (dirty << 63);
+}
+
 int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
     uint8_t priv = (addr >> 10) & 0x3;
     if (priv > cpu->mode) {
@@ -33,7 +42,7 @@ int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
         case CSR_TIME:          *out = cpu->csr.time; break;
         case CSR_INSTRET:       *out = cpu->csr.minstret; break;
         
-        case CSR_SSTATUS:       *out = cpu->csr.sstatus; break;
+        case CSR_SSTATUS:       *out = csr_read_sstatus(cpu); break;
         case CSR_SIE:           *out = cpu->csr.sie; break;
         case CSR_STVEC:         *out = cpu->csr.stvec; break;
         case CSR_SCOUNTEREN:    *out = cpu->csr.scounteren; break;
@@ -45,7 +54,7 @@ int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
         case CSR_STVAL:         *out = cpu->csr.stval; break;
         case CSR_SIP:           *out = cpu->csr.sip; break;
         case CSR_SCOUNTOVF:     *out = cpu->csr.scountovf; break;
-        case CSR_SATP:          *out = cpu->csr.satp; break;
+        case CSR_SATP:          { if ((cpu->csr.mstatus >> 20) & 1) { raise_trap(cpu, CAUSE_ILLEGAL_INSTR, 0, 0 ); return 0; } *out = cpu->csr.satp;} break;
         case CSR_SCONTEXT:      *out = cpu->csr.scontext; break;
         case CSR_SSTATEEN0:     *out = cpu->csr.sstateen0; break;
         case CSR_SSTATEEN1:     *out = cpu->csr.sstateen1; break;
@@ -149,7 +158,7 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
         case CSR_INSTRET:       break;
         
         // Supervisor CSRs
-        case CSR_SSTATUS:       cpu->csr.sstatus = val; break;
+        case CSR_SSTATUS:       csr_write_sstatus(cpu, val); break;
         case CSR_SIE:           cpu->csr.sie = val; break;
         case CSR_STVEC:         cpu->csr.stvec = val; break;
         case CSR_SCOUNTEREN:    cpu->csr.scounteren = val; break;
@@ -161,7 +170,7 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
         case CSR_STVAL:         cpu->csr.stval = val; break;
         case CSR_SIP:           cpu->csr.sip = val; break;
         case CSR_SCOUNTOVF:     break;
-        case CSR_SATP:          cpu->csr.satp = val; break;
+        case CSR_SATP:          { if ((cpu->csr.mstatus >> 20) & 1) { raise_trap(cpu, CAUSE_ILLEGAL_INSTR, 0, 0 ); return 0; } cpu->csr.satp = val;} break;
         case CSR_SCONTEXT:      cpu->csr.scontext = val; break;
         case CSR_SSTATEEN0:     cpu->csr.sstateen0 = val; break;
         case CSR_SSTATEEN1:     cpu->csr.sstateen1 = val; break;
@@ -175,7 +184,7 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
         case CSR_MHARTID:       break;
         case CSR_MCONFIGPTR:    break;
         case CSR_MSTATUS:       { cpu->csr.mstatus = val; hardwire_mstatus(cpu); } break;
-        case CSR_MISA:          cpu->csr.misa = val; break;
+        case CSR_MISA:          break;
         case CSR_MEDELEG:       cpu->csr.medeleg = val; break;
         case CSR_MIDELEG:       cpu->csr.mideleg = val; break;
         case CSR_MIE:           cpu->csr.mie = val; break;
