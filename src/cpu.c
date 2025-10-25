@@ -69,7 +69,10 @@ void cpu_step(cpu_t* cpu) {
 
     for (int i = 0; i < instr_table_size; i++) {
         if ((instr & instr_table[i].mask) == instr_table[i].match) {
-
+            // if (cpu->pc == 0x80000034) {
+            //     printf("MASK: %X, MATCH: %X\n", instr_table[i].mask, instr_table[i].match);
+            // }
+            // printf("PC: %lX, MASK: %X, MATCH: %X\n", cpu->pc, instr_table[i].mask, instr_table[i].match);
             instr_table[i].func(cpu, instr);
             cpu->pc = cpu->npc;
             return;
@@ -97,7 +100,7 @@ int cpu_check_interrupts(cpu_t* cpu) {
         return 0;
 
     uint64_t s_interrupts = pending_and_enabled & cpu->csr.mideleg;
-        uint64_t m_interrupts = pending_and_enabled & ~cpu->csr.mideleg;
+    uint64_t m_interrupts = pending_and_enabled & ~cpu->csr.mideleg;
 
     uint64_t mie = (mstatus >> 3) & 1; // MIE
     uint64_t sie = (mstatus >> 1) & 1; // SIE
@@ -111,7 +114,7 @@ int cpu_check_interrupts(cpu_t* cpu) {
         if (mie == 1)
             can_take |= m_interrupts;
         
-        if (cpu->mode == PRIV_S && sie == 1)
+        if (sie == 1)
             can_take |= s_interrupts;
     }
 

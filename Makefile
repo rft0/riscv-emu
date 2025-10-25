@@ -6,6 +6,7 @@ OUT_DIR = bin
 
 # CFLAGS = -D_CRT_SECURE_NO_WARNINGS
 CFLAGS = -DEMU_TESTS_ENABLED
+# CFLAGS =
 
 LDFLAGS = -lm
 
@@ -34,9 +35,11 @@ $(OUT_DIR):
 	@mkdir -p $@
 clean:
 # 	@if exist "$(OBJ_DIR)" rmdir /s /q "$(OBJ_DIR)"
-	@rm -rf $(OBJ_DIR) $(OUT_DIR)
+# 	@rm -rf $(OBJ_DIR) $(OUT_DIR)
+	@rm -rf $(OBJ_DIR)
 
 run: $(TARGET)
-	./$(TARGET) --test tests/isa/rv64ui-p-ma_data
+	./$(TARGET) --sbi ./bin/fw_jump.elf --dtb ./dts/virt.dtb --kernel ./bin/kernel --initrd ./bin/initrd
+# 	./$(TARGET) --test tests/isa/rv64ua-p-amoadd_d
 
 .PHONY: all dev clean run

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define PLIC_NUM_INTERRUPTS  32   // adjust as needed
+#define PLIC_NUM_INTERRUPTS  31     // adjust as needed
 
 #define PLIC_BASE_ADDR       0x0C000000
 #define PLIC_PRIORITY_BASE   0x0C000000

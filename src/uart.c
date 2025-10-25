@@ -81,7 +81,6 @@ int uart_write(uint64_t addr, void* pval, size_t size) {
             // fflush(stdout);
 
             uint8_t ch = value & 0xFF;
-
             if (uart.tx_len < (int)sizeof(uart.tx_fifo)) {
                 uart.tx_fifo[uart.tx_len++] = ch;
             } else {

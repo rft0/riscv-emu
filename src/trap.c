@@ -12,15 +12,25 @@ void raise_trap(cpu_t* cpu, uint64_t cause, uint64_t tval, int is_interrupt) {
     int delegate = 0;
 
     printf("trap: cause=0x%lX, tval=%lx, is_interrupt=%d, mode=%d\n", cause, tval, is_interrupt, cpu->mode);
-    // exit(0);
+    // exit(1);
 
-    if (!is_interrupt && cpu->mode <= PRIV_S && (medeleg >> cause) & 1)
-        delegate = 1;
+    // if (!is_interrupt && cpu->mode <= PRIV_S && (medeleg >> cause) & 1)
+    //     delegate = 1;
+
+    if (cpu->mode <= PRIV_S) {
+        if (is_interrupt) {
+            if ((cpu->csr.mideleg >> (cause & 0x7FFFFFFF)) & 1) 
+                delegate = 1;
+        } else {
+            if ((cpu->csr.medeleg >> cause) & 1)
+                delegate = 1;
+        }
+    }
 
     if (delegate) {
         uint64_t sstatus = csr_read_sstatus(cpu);
 
-        cpu->csr.sepc = cpu->pc;
+        cpu->csr.sepc = is_interrupt ? cpu->npc : cpu->pc;
         cpu->csr.scause = cause | ((uint64_t)is_interrupt << 63);
         cpu->csr.stval = tval;
 
@@ -40,7 +50,7 @@ void raise_trap(cpu_t* cpu, uint64_t cause, uint64_t tval, int is_interrupt) {
     } else {
         uint64_t mstatus = cpu->csr.mstatus;
 
-        cpu->csr.mepc = cpu->pc;
+        cpu->csr.mepc = is_interrupt ? cpu->npc : cpu->pc;
         cpu->csr.mcause = cause | ((uint64_t)is_interrupt << 63);
         cpu->csr.mtval = tval;
 

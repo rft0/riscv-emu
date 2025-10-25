@@ -77,10 +77,15 @@ static mem_region_t* find_region(uint64_t pa) {
 }
 
 int sv39_translate(cpu_t* cpu, uint64_t va, access_type_t access, uint64_t* pa_out) {
+    if (cpu->mode == PRIV_M) {
+        *pa_out = va;
+        return 1;
+    }
+
     uint64_t satp = cpu->csr.satp;
     uint64_t mode = extract64(satp, 63, 60);
 
-    if (cpu->mode == PRIV_M || mode != 8) {  // Sv39
+    if (mode != 8) {  // Sv39
         *pa_out = va;
         return 1;
     }
@@ -135,42 +140,33 @@ int sv39_translate(cpu_t* cpu, uint64_t va, access_type_t access, uint64_t* pa_o
             
             // Check for misaligned superpage
             uint64_t pte_ppn = extract64(pte, 53, 10);
-            for (int i = level + 1; i < 3; i++) {
+            for (int i = 0; i < level; i++) {
+                // Check if PPN[i] (which is bits i*9+8 : i*9) is non-zero
                 if (extract64(pte_ppn, (i * 9) + 8, i * 9) != 0) {
                     uint64_t cause = (access == ACCESS_FETCH) ? CAUSE_INSTR_PF : (access == ACCESS_STORE) ? CAUSE_STORE_PF : CAUSE_LOAD_PF;
                     raise_trap(cpu, cause, va, 0);
                     return 0;
                 }
             }
-            
-            int update_pte = 0;
-            uint64_t new_pte = pte;
-            
+
             if (!(pte & PTE_A)) {
-                new_pte |= PTE_A;
-                update_pte = 1;
+                uint64_t cause = (access == ACCESS_FETCH) ? CAUSE_INSTR_PF : (access == ACCESS_STORE) ? CAUSE_STORE_PF : CAUSE_LOAD_PF;
+                raise_trap(cpu, cause, va, 0);
+                return 0;
             }
             
+            // Dirty check
             if (access == ACCESS_STORE && !(pte & PTE_D)) {
-                new_pte |= PTE_D;
-                update_pte = 1;
+                raise_trap(cpu, CAUSE_STORE_PF, va, 0);
+                return 0;
             }
             
-            if (update_pte) {
-                if (!phys_write(cpu, pte_addr, &new_pte, 8))
-                    return 0;
-
-                pte = new_pte;
+            uint64_t pa = (pte_ppn << 12);
+            if (level > 0) {
+                uint64_t va_mask = (1ULL << (level * 9)) - 1;
+                va_mask = va_mask << 12;
+                pa = (pa & ~va_mask) | (va & va_mask);
             }
-            
-            uint64_t pa = 0;
-            
-            // Add PPN bits from PTE (mask out lower bits for superpages)
-            pa |= (pte_ppn & ~((1ULL << ((level + 1) * 9)) - 1)) << 12;
-            
-            for (int i = level + 1; i < 3; i++)
-                pa |= vpn[i] << (12 + (i * 9));
-
             
             pa |= offset;
             *pa_out = pa;
@@ -189,10 +185,8 @@ int sv39_translate(cpu_t* cpu, uint64_t va, access_type_t access, uint64_t* pa_o
 
 int phys_read(cpu_t* cpu, uint64_t pa, void* out, size_t size) {
     mem_region_t* rgn = find_region(pa);
-    //! TODO: Check this
+
     if (!rgn || pa + size > rgn->base + rgn->size) {
-        // printf("(0x%lX)Invalid phys read at 0x%lX\n", cpu->pc, pa);
-        // exit(1);
         raise_trap(cpu, CAUSE_LOAD_PF, pa, 0);
         return 0;
     }

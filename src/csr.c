@@ -1,4 +1,5 @@
 #include "csr.h"
+#include "def.h"
 #include "trap.h"
 
 #include <stdio.h>
@@ -7,14 +8,6 @@
 // IMPLEMENTING CSRS LIKE THIS WAS A BIG MISTAKE JUST CREATE A FLAT 4096 BYTE ARRAY NEXT TIME
 // BUT TOO MANY THINGS DEPEND ON CURRENT SETUP SO LET IT BE FOR NOW
 // Note ends.
-static inline void hardwire_mstatus(cpu_t* cpu) {
-    uint64_t mstatus = cpu->csr.mstatus;
-    uint64_t dirty = (((mstatus >> 13) & 3) == 3) ? 1 : 0;
-
-    mstatus &= ~((3ULL << 32) | (3ULL << 34) | (1ULL<< 63));
-    cpu->csr.mstatus = mstatus;
-    cpu->csr.mstatus |= (2ULL << 32) | (2ULL << 34) | (dirty << 63);
-}
 
 int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
     uint8_t priv = (addr >> 10) & 0x3;
@@ -43,7 +36,7 @@ int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
         case CSR_INSTRET:       *out = cpu->csr.minstret; break;
         
         case CSR_SSTATUS:       *out = csr_read_sstatus(cpu); break;
-        case CSR_SIE:           *out = cpu->csr.sie; break;
+        case CSR_SIE:           *out = cpu->csr.mie & (1ULL << 1 | 1ULL << 5 | 1ULL << 9); break;
         case CSR_STVEC:         *out = cpu->csr.stvec; break;
         case CSR_SCOUNTEREN:    *out = cpu->csr.scounteren; break;
         case CSR_SENVCFG:       *out = cpu->csr.senvcfg; break;
@@ -52,7 +45,7 @@ int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out) {
         case CSR_SEPC:          *out = cpu->csr.sepc; break;
         case CSR_SCAUSE:        *out = cpu->csr.scause; break;
         case CSR_STVAL:         *out = cpu->csr.stval; break;
-        case CSR_SIP:           *out = cpu->csr.sip; break;
+        case CSR_SIP:           *out = cpu->csr.mip & cpu->csr.mideleg; break;
         case CSR_SCOUNTOVF:     *out = cpu->csr.scountovf; break;
         case CSR_SATP:          { if ((cpu->csr.mstatus >> 20) & 1) { raise_trap(cpu, CAUSE_ILLEGAL_INSTR, 0, 0 ); return 0; } *out = cpu->csr.satp;} break;
         case CSR_SCONTEXT:      *out = cpu->csr.scontext; break;
@@ -159,7 +152,7 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
         
         // Supervisor CSRs
         case CSR_SSTATUS:       csr_write_sstatus(cpu, val); break;
-        case CSR_SIE:           cpu->csr.sie = val; break;
+        case CSR_SIE:           { cpu->csr.mie &= ~(1ULL << 1 | 1ULL << 5 | 1ULL << 9); cpu->csr.mie |= (val & (1ULL << 1 | 1ULL << 5 | 1ULL << 9)); } break;
         case CSR_STVEC:         cpu->csr.stvec = val; break;
         case CSR_SCOUNTEREN:    cpu->csr.scounteren = val; break;
         case CSR_SENVCFG:       cpu->csr.senvcfg = val; break;
@@ -168,7 +161,7 @@ int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val) {
         case CSR_SEPC:          cpu->csr.sepc = val; break;
         case CSR_SCAUSE:        cpu->csr.scause = val; break;
         case CSR_STVAL:         cpu->csr.stval = val; break;
-        case CSR_SIP:           cpu->csr.sip = val; break;
+        case CSR_SIP:           { cpu->csr.mip &= ~(1ULL << 1); cpu->csr.mip |= (val & (1ULL << 1)); } break;
         case CSR_SCOUNTOVF:     break;
         case CSR_SATP:          { if ((cpu->csr.mstatus >> 20) & 1) { raise_trap(cpu, CAUSE_ILLEGAL_INSTR, 0, 0 ); return 0; } cpu->csr.satp = val;} break;
         case CSR_SCONTEXT:      cpu->csr.scontext = val; break;

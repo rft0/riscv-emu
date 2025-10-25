@@ -123,6 +123,7 @@
         fesetround(new_rm);                                     \
         changed = 1;                                            \
     }                                                           \
+    feclearexcept(FE_ALL_EXCEPT);                               \
 
 #define FE_SETUP_CSR_RM                                         \
     int old_rm = fegetround();                                  \
@@ -142,6 +143,7 @@
         fesetround(new_rm);                                     \
         changed = 1;                                            \
     }                                                           \
+    feclearexcept(FE_ALL_EXCEPT);                               \
 
 #define FE_RESTORE_RM                                           \
     if (changed)                                                \
@@ -155,6 +157,22 @@ enum {
     RM_RMM = 4,
     RM_DYN = 7
 };
+
+static inline int is_nan_s(uint32_t bits) {
+    return ((bits & 0x7F800000) == 0x7F800000) && ((bits & 0x007FFFFF) != 0);
+}
+
+static inline int is_snan_s(uint32_t bits) {
+    return ((bits & 0x7FC00000) == 0x7F800000) && ((bits & 0x003FFFFF) != 0);
+}
+
+static inline int is_nan_d(uint64_t bits) {
+    return ((bits & 0x7FF0000000000000ULL) == 0x7FF0000000000000ULL) && ((bits & 0x000FFFFFFFFFFFFFULL) != 0);
+}
+
+static inline int is_snan_d(uint64_t bits) {
+    return ((bits & 0x7FF8000000000000ULL) == 0x7FF0000000000000ULL) && ((bits & 0x0007FFFFFFFFFFFFULL) != 0);
+}
 
 static inline float f32_from_fpr(uint64_t rv) {
     if ((rv & 0xFFFFFFFF00000000ULL) != 0xFFFFFFFF00000000ULL) {
@@ -466,8 +484,7 @@ void exec_mret(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_wfi(cpu_t* cpu, uint32_t instr) {
-    //! TODO: Stall until interrupt pending.
-    // For now, just do nothing.
+    cpu->halted = 1;
 }
 
 void exec_sfence_vma(cpu_t* cpu, uint32_t instr) {
@@ -531,7 +548,6 @@ void exec_sh(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_sw(cpu_t* cpu, uint32_t instr) {
-    printf("PC: 0x%lX, GP: %lu\n", cpu->pc, cpu->x[3]);
     va_store(cpu, RS1 + IMM_S, &RS2, 4);
 }
 
@@ -557,7 +573,7 @@ void exec_bne(cpu_t* cpu, uint32_t instr) {
     if (RS1 != RS2)
         SET_NPC(PC + IMM_B);
 
-    printf("BNE, RS1: 0x%lX, RS2: 0x%lX\n", RS1, RS2);
+    // printf("BNE, RS1: 0x%lX, RS2: 0x%lX\n", RS1, RS2);
 }
 
 void exec_blt(cpu_t* cpu, uint32_t instr) {
@@ -750,23 +766,28 @@ void exec_remuw(cpu_t* cpu, uint32_t instr) {
 
 // Ignore aq and rl for single core
 void exec_lr_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    cpu->lr_addr = RS1;
+    cpu->lr_addr = rs1;
     cpu->lr_valid = 1;
 }
 
 void exec_sc_w(cpu_t* cpu, uint32_t instr) {
-    if (!cpu->lr_valid || cpu->lr_addr != RS1) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
+    if (!cpu->lr_valid || cpu->lr_addr != rs1) {
         SET_RD(1); // failure
         return;
     }
 
-    if (!va_store(cpu, RS1, &RS2, 4)) {
+    if (!va_store(cpu, rs1, &rs2, 4)) {
         SET_RD(1);
         return;
     }
@@ -776,130 +797,162 @@ void exec_sc_w(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_amoswap_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    if (!va_store(cpu, RS1, &RS2, 4))
+    if (!va_store(cpu, rs1, &rs2, 4))
         return;
 }
 
 void exec_amoadd_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t sum = val + (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &sum, 4))
+    uint32_t sum = val + (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &sum, 4))
         return;
 }
 
 void exec_amoxor_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t res = val ^ (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &res, 4))
+    uint32_t res = val ^ (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &res, 4))
         return;
 }
 
 void exec_amoand_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t res = val & (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &res, 4))
+    uint32_t res = val & (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &res, 4))
         return;
 }
 
 void exec_amoor_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t res = val | (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &res, 4))
+    uint32_t res = val | (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &res, 4))
         return;
 }
 
 void exec_amomin_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t res = (int32_t)val < (int32_t)RS2 ? val : (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &res, 4))
+    uint32_t res = (int32_t)val < (int32_t)rs2 ? val : (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &res, 4))
         return;
 }
 
 void exec_amomax_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t res = (int32_t)val > (int32_t)RS2 ? val : (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &res, 4))
+    uint32_t res = (int32_t)val > (int32_t)rs2 ? val : (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &res, 4))
         return;
 }
 
 void exec_amominu_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t res = val < (uint32_t)RS2 ? val : (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &res, 4))
+    uint32_t res = val < (uint32_t)rs2 ? val : (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &res, 4))
         return;
 }
 
 void exec_amomaxu_w(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint32_t val;
-    if (!va_load(cpu, RS1, &val, 4))
+    if (!va_load(cpu, rs1, &val, 4))
         return;
 
     SET_RD((int64_t)(int32_t)val);
 
-    uint32_t res = val > (uint32_t)RS2 ? val : (uint32_t)RS2;
-    if (!va_store(cpu, RS1, &res, 4))
+    uint32_t res = val > (uint32_t)rs2 ? val : (uint32_t)rs2;
+    if (!va_store(cpu, rs1, &res, 4))
         return;
 }
 
 void exec_lr_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    cpu->lr_addr = RS1;
+    cpu->lr_addr = rs1;
     cpu->lr_valid = 1;
 }
 
 void exec_sc_d(cpu_t* cpu, uint32_t instr) {
-    if (!cpu->lr_valid || cpu->lr_addr != RS1) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
+    if (!cpu->lr_valid || cpu->lr_addr != rs1) {
         SET_RD(1);
         return;
     }
 
-    if (!va_store(cpu, RS1, &RS2, 8)) {
+    if (!va_store(cpu, rs1, &rs2, 8)) {
         SET_RD(1);
         return;
     }
@@ -909,120 +962,152 @@ void exec_sc_d(cpu_t* cpu, uint32_t instr) {
 }
 
 void exec_amoswap_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    if (!va_store(cpu, RS1, &RS2, 8))
+    if (!va_store(cpu, rs1, &rs2, 8))
         return;
 }
 
 void exec_amoadd_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t sum = val + RS2;
-    if (!va_store(cpu, RS1, &sum, 8))
+    uint64_t sum = val + rs2;
+    if (!va_store(cpu, rs1, &sum, 8))
         return;
 }
 
 void exec_amoxor_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t res = val ^ RS2;
-    if (!va_store(cpu, RS1, &res, 8))
+    uint64_t res = val ^ rs2;
+    if (!va_store(cpu, rs1, &res, 8))
         return;
 }
 
 void exec_amoand_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t res = val & RS2;
-    if (!va_store(cpu, RS1, &res, 8))
+    uint64_t res = val & rs2;
+    if (!va_store(cpu, rs1, &res, 8))
         return;
 }
 
 void exec_amoor_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t res = val | RS2;
-    if (!va_store(cpu, RS1, &res, 8))
+    uint64_t res = val | rs2;
+    if (!va_store(cpu, rs1, &res, 8))
         return;
 }
 
 void exec_amomin_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t res = (int64_t)val < (int64_t)RS2 ? val : RS2;
-    if (!va_store(cpu, RS1, &res, 8))
+    uint64_t res = (int64_t)val < (int64_t)rs2 ? val : rs2;
+    if (!va_store(cpu, rs1, &res, 8))
         return;
 }
 
 void exec_amomax_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+    
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t res = (int64_t)val > (int64_t)RS2 ? val : RS2;
-    if (!va_store(cpu, RS1, &res, 8))
+    uint64_t res = (int64_t)val > (int64_t)rs2 ? val : rs2;
+    if (!va_store(cpu, rs1, &res, 8))
         return;
 }
 
 void exec_amominu_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t res = val < RS2 ? val : RS2;
-    if (!va_store(cpu, RS1, &res, 8))
+    uint64_t res = val < rs2 ? val : rs2;
+    if (!va_store(cpu, rs1, &res, 8))
         return;
 }
 
 void exec_amomaxu_d(cpu_t* cpu, uint32_t instr) {
+    uint64_t rs1 = RS1;
+    uint64_t rs2 = RS2;
+
     uint64_t val;
-    if (!va_load(cpu, RS1, &val, 8))
+    if (!va_load(cpu, rs1, &val, 8))
         return;
 
     SET_RD(val);
 
-    uint64_t res = val > RS2 ? val : RS2;
-    if (!va_store(cpu, RS1, &res, 8))
+    uint64_t res = val > rs2 ? val : rs2;
+    if (!va_store(cpu, rs1, &res, 8))
         return;
 }
 
 void exec_flw(cpu_t* cpu, uint32_t instr) {
     CHECK_FPU;
 
+    union {
+        uint32_t bits;
+        float f;
+    } u;
+        
     uint32_t val;
-    if (!va_load(cpu, RS1 + IMM_I, &val, 4))
+    if (!va_load(cpu, RS1 + IMM_I, &u.bits, 4))
         return;
 
-    SET_FRD(f32_to_fpr(val));
+    SET_FRD(f32_to_fpr(u.f));
 }
 
 void exec_fsw(cpu_t* cpu, uint32_t instr) {
@@ -1058,7 +1143,7 @@ void exec_fnmsub_s(cpu_t* cpu, uint32_t instr) {
 
     FE_SETUP_RM;
 
-    SET_FRD(f32_to_fpr(-fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), f32_from_fpr(FRS3))));
+    SET_FRD(f32_to_fpr(-fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), -f32_from_fpr(FRS3))));
     fflags_check_and_set(cpu);
 
     FE_RESTORE_RM;
@@ -1068,8 +1153,7 @@ void exec_fnmadd_s(cpu_t* cpu, uint32_t instr) {
     CHECK_FPU;
 
     FE_SETUP_RM;
-
-    SET_FRD(f32_to_fpr(-fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), -f32_from_fpr(FRS3))));
+    SET_FRD(f32_to_fpr(-fmaf(f32_from_fpr(FRS1), f32_from_fpr(FRS2), f32_from_fpr(FRS3))));
     fflags_check_and_set(cpu);
 
     FE_RESTORE_RM;
@@ -1189,7 +1273,7 @@ void exec_fcvt_wu_s(cpu_t* cpu, uint32_t instr) {
     FE_SETUP_RM;
     
     uint32_t res = (uint32_t)nearbyintf(f32_from_fpr(FRS1)); 
-    SET_RD((uint64_t)res);
+    SET_RD((int64_t)(int32_t)res);
     fflags_check_and_set(cpu);
 
     FE_RESTORE_RM;
@@ -1302,7 +1386,7 @@ void exec_fcvt_s_wu(cpu_t* cpu, uint32_t instr) {
 void exec_fmv_v_x(cpu_t* cpu, uint32_t instr) {
     CHECK_FPU;
 
-    SET_FRD((uint32_t)(RS1 & 0xFFFFFFFF));
+    SET_FRD(0xFFFFFFFF00000000ULL | (RS1 & 0xFFFFFFFF));
 }
 
 void exec_fcvt_l_s(cpu_t* cpu, uint32_t instr) {
@@ -1354,11 +1438,16 @@ void exec_fcvt_s_lu(cpu_t* cpu, uint32_t instr) {
 void exec_fld(cpu_t* cpu, uint32_t instr) {
     CHECK_FPU;
 
+    union {
+        uint64_t bits;
+        double d;
+    } u;
+
     uint64_t val;
-    if (!va_load(cpu, RS1 + IMM_I, &val, 8))
+    if (!va_load(cpu, RS1 + IMM_I, &u.bits, 8))
         return;
 
-    SET_FRD(f64_to_fpr(val));
+    SET_FRD(f64_to_fpr(u.d));
 }
 
 void exec_fsd(cpu_t* cpu, uint32_t instr) {
@@ -1394,7 +1483,7 @@ void exec_fnmsub_d(cpu_t* cpu, uint32_t instr) {
 
     FE_SETUP_RM;
 
-    SET_FRD(f64_to_fpr(-fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), f64_from_fpr(FRS3))));
+    SET_FRD(f64_to_fpr(-fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), -f64_from_fpr(FRS3))));
     fflags_check_and_set(cpu);
 
     FE_RESTORE_RM;
@@ -1405,7 +1494,7 @@ void exec_fnmadd_d(cpu_t* cpu, uint32_t instr) {
 
     FE_SETUP_RM;
 
-    SET_FRD(f64_to_fpr(-fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), -f64_from_fpr(FRS3))));
+    SET_FRD(f64_to_fpr(-fma(f64_from_fpr(FRS1), f64_from_fpr(FRS2), f64_from_fpr(FRS3))));
     fflags_check_and_set(cpu);
 
     FE_RESTORE_RM;
@@ -1617,7 +1706,7 @@ void exec_fcvt_wu_d(cpu_t* cpu, uint32_t instr) {
     FE_SETUP_RM;
 
     uint32_t res = (uint32_t)nearbyint(f64_from_fpr(FRS1)); 
-    SET_RD((uint64_t)res);
+    SET_RD((int64_t)(int32_t)res);
     fflags_check_and_set(cpu);
 
     FE_RESTORE_RM;

@@ -88,31 +88,28 @@
 #define CSR_DSCRATCH0               0x7B2
 #define CSR_DSCRATCH1               0x7B3
 
-#define MASK_SSTATUS (          \
-    (1UL << 63) | /* SD     */  \
-    (3UL << 34) | /* UXL    */  \
-    (1UL << 19) | /* MXR    */  \
-    (1UL << 18) | /* SUM    */  \
-    (3UL << 15) | /* XS     */  \
-    (3UL << 13) | /* FS     */  \
-    (3UL << 9)  | /* VS     */  \
-    (1UL << 8)  | /* SPP    */  \
-    (1UL << 6)  | /* UBE    */  \
-    (1UL << 5)  | /* SPIE   */  \
-    (1UL << 1)    /* SIE    */  \
-)
+#define MASK_SSTATUS ((1ULL << 63) | (3ULL << 32) | (3ULL << 18) | (3ULL << 13) | (1ULL << 8) | (1ULL << 5) | (1ULL << 1))
 
 int csr_write(cpu_t* cpu, uint32_t addr, uint64_t val);
 int csr_read(cpu_t* cpu, uint32_t addr, uint64_t* out);
+
+static inline void hardwire_mstatus(cpu_t* cpu) {
+    // Set 63:23, 16:15, 10:9, 6, 4, 2, 0 to zero
+    cpu->csr.mstatus &= ~(GENMASK64(63, 23) | GENMASK64(16, 15) | GENMASK64(10, 9) | (1ULL << 6) | (1ULL << 4) | (1ULL << 2) | (1ULL << 0));
+    uint64_t fs_dirty = (((cpu->csr.mstatus >> 13) & 3) == 3) ? 1 : 0;
+
+    // Set SD, SXL, UXL
+    cpu->csr.mstatus |= (fs_dirty << 63) | (2ULL << 34) | (2ULL << 32);
+}
 
 static uint64_t csr_read_sstatus(cpu_t* cpu) {
     return cpu->csr.mstatus & MASK_SSTATUS;
 }
 
 static void csr_write_sstatus(cpu_t* cpu, uint64_t value) {
-    uint64_t new_sstatus_bits = value & MASK_SSTATUS;
-    uint64_t old_mstatus_bits = cpu->csr.mstatus & (~MASK_SSTATUS);
-    cpu->csr.mstatus = old_mstatus_bits | new_sstatus_bits;
+    cpu->csr.mstatus = (cpu->csr.mstatus & ~MASK_SSTATUS) | (value & MASK_SSTATUS);
+    hardwire_mstatus(cpu);
 }
+
 
 #endif

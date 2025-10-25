@@ -12,12 +12,7 @@
 [ 15/135] PASSED : rv64mi-p-sh-misaligned
 [ 16/135] PASSED : rv64mi-p-sw-misaligned
 [ 17/135] PASSED : rv64mi-p-zicntr
-[ 18/135] FAILED (case 18) : rv64si-p-csr
 [ 19/135] FAILED (case 3) : rv64si-p-dirty
-SV39: level=2, pte_addr=0x80002000, pte=0x20000C01
-SV39: level=1, pte_addr=0x80003000, pte=0x20001001
-SV39: level=0, pte_addr=0x80004000, pte=0x20001C49
-[ 20/135] TIMEOUT: rv64si-p-icache-alias
 [ 21/135] PASSED : rv64si-p-ma_fetch
 [ 22/135] PASSED : rv64si-p-sbreak
 [ 23/135] PASSED : rv64si-p-scall

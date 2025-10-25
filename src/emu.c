@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "csr.h"
 #include "mem.h"
 #include "cpu.h"
 #include "clint.h"
@@ -30,25 +31,39 @@ emu_t* emu_new() {
     emu->cpu.x[10] = 0;                     // a0 = hartid
     emu->cpu.x[11] = DTB_LOAD_ADDR;         // a1 = payload entry
 
-    //! TODO: mstatus FS bits handling at execution
-
-    // MPP (bits 12:11) = 3 (M-mode), UXL (bits 33:32) = 2 (RV64), SXL (bits 35:34) = 2 (RV64)
-    emu->cpu.csr.mstatus = (3ULL << 11) | (2ULL << 32) | (2ULL << 34);
-    emu->cpu.csr.misa = (2ULL << 62) | (1ULL << ('I'-'A')) | (1ULL << ('M'-'A')) | (1ULL << ('A'-'A')) | (1ULL << ('F'-'A')) | (1ULL << ('D'-'A')) | (1ULL << ('C'-'A'));
+    hardwire_mstatus(&emu->cpu);
     emu->cpu.csr.mhartid = 0;
-    // emu->cpu.csr.mtvec = 0x80000020;
+    emu->cpu.csr.mstatus |= (3ULL << 11); // M Mode
+    emu->cpu.csr.misa = (2ULL << 62) | (1ULL << ('I'-'A')) | (1ULL << ('M'-'A')) | (1ULL << ('A'-'A')) | (1ULL << ('F'-'A')) | (1ULL << ('D'-'A')) | (1ULL << ('C'-'A'));
 
     return emu;
 }
+
+// void emu_run() {
+//     while (g_emu->running) {
+//         clint_tick(1);
+        
+//         if (!g_emu->cpu.halted) {
+//             cpu_step(&g_emu->cpu);
+//             clint_update(&g_emu->cpu);
+//             cpu_check_interrupts(&g_emu->cpu);
+//         }
+//     }
+// }
 
 void emu_run() {
     while (g_emu->running) {
         clint_tick(1);
 
+        // Per Core
+        clint_update(&g_emu->cpu);
+
+        if (g_emu->cpu.halted && (g_emu->cpu.csr.mip & g_emu->cpu.csr.mie))
+            g_emu->cpu.halted = 0;
+
         if (!g_emu->cpu.halted) {
+            cpu_check_interrupts(&g_emu->cpu); 
             cpu_step(&g_emu->cpu);
-            clint_update(&g_emu->cpu);
-            cpu_check_interrupts(&g_emu->cpu);
         }
     }
 }

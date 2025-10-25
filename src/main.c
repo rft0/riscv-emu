@@ -13,7 +13,8 @@ rv64ui-p-ld_st
 rv64ui-p-ma_data
 */
 
-cli_args_t g_cli_args;
+cli_args_t g_cli_args = { 0 };
+size_t g_kernel_size = 0;
 
 int main(int argc, char** argv) {
     cli_parse_args(argc, argv, &g_cli_args);
@@ -41,18 +42,44 @@ int main(int argc, char** argv) {
     }
 
     if (g_cli_args.sbi_path) {
-        if (!load_elfex(emulator, g_cli_args.sbi_path, 0, SBI_LOAD_ADDR)) {
+        if (!load_elfex(emulator, g_cli_args.sbi_path, 1, SBI_LOAD_ADDR)) {
             fprintf(stderr, "Failed to load SBI file: %s\n", g_cli_args.sbi_path);
             emu_free();
             return 1;
         }
 
         if (g_cli_args.kernel_path) {
-            if (!load_elf(emulator, g_cli_args.kernel_path, 0)) {
+            if (!g_cli_args.initrd_path) {
+                fprintf(stderr, "You must define an initrd if you want to load a kernel image.\n");
+                emu_free();
+                return 1;
+            }
+
+            // if (!load_elf(emulator, g_cli_args.kernel_path, 0)) {
+            //     fprintf(stderr, "Failed to load kernel file: %s\n", g_cli_args.kernel_path);
+            //     emu_free();
+            //     return 1;
+            // }
+
+            uint8_t* kernel = load_binary(g_cli_args.kernel_path, &g_kernel_size);
+            if (!kernel) {
                 fprintf(stderr, "Failed to load kernel file: %s\n", g_cli_args.kernel_path);
                 emu_free();
                 return 1;
             }
+
+            phys_write(&emulator->cpu, KERNEL_LOAD_ADDR, kernel, g_kernel_size);
+
+            
+            size_t initrd_size;
+            uint8_t* initrd = load_binary(g_cli_args.initrd_path, &initrd_size);
+            if (!initrd) {
+                fprintf(stderr, "Failed to load initrd: %s\n", g_cli_args.initrd_path);
+                emu_free();
+                return 1;
+            }
+
+            phys_write(&emulator->cpu, KERNEL_LOAD_ADDR + g_kernel_size, initrd, initrd_size);
         } else {
             printf("Warning: No kernel file specified\n");
         }

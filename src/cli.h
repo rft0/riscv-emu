@@ -6,6 +6,7 @@ typedef struct {
     char* kernel_path;
     char* sbi_path;
     char* dtb_path;
+    char* initrd_path;
     int help;
 } cli_args_t;
 

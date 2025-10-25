@@ -50,6 +50,13 @@ void cli_parse_args(int argc, char** argv, cli_args_t* out_args) {
             }
 
             out_args->kernel_path = argv[++i];
+        } else if (strcmp(argv[i], "--initrd") == 0) {
+            if (i + 1 >= argc) {
+                printf("Error: --initrd requires a <path> argument\n");
+                exit(1);
+            }
+
+            out_args->initrd_path = argv[++i];
         } else {
             printf("Error: Unknown argument: %s\n", argv[i]);
             exit(1);
@@ -93,4 +100,5 @@ void cli_help() {
     printf("  --dtb <path>      Path to device tree binary to load\n");
     printf("  --sbi <path>      Path to SBI binary to load\n");
     printf("  --kernel <path>   Path to kernel binary to load\n");
+    printf("  --initrd <path>   Path to initial file system to load\n");
 }

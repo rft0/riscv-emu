@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define GENMASK(h, l) (((~0U) - (1U << (l)) + 1) & (~0U >> (31 - (h))))
+#define GENMASK64(h, l) (((~0ULL) - (1ULL << (l)) + 1) & (~0ULL >> (63 - (h))))
+
 static inline uint32_t extract32(uint32_t value, int h, int l) {
     return (value << (31 - h)) >> (31 - h + l);
 }
