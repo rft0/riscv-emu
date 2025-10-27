@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "emu.h"
 
@@ -69,7 +70,6 @@ int main(int argc, char** argv) {
             }
 
             phys_write(&emulator->cpu, KERNEL_LOAD_ADDR, kernel, g_kernel_size);
-
             
             size_t initrd_size;
             uint8_t* initrd = load_binary(g_cli_args.initrd_path, &initrd_size);

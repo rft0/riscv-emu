@@ -5,8 +5,8 @@ OBJ_DIR = obj
 OUT_DIR = bin
 
 # CFLAGS = -D_CRT_SECURE_NO_WARNINGS
-CFLAGS = -DEMU_TESTS_ENABLED
-# CFLAGS =
+# CFLAGS = -DEMU_TESTS_ENABLED
+CFLAGS =
 
 LDFLAGS = -lm
 
@@ -39,7 +39,8 @@ clean:
 	@rm -rf $(OBJ_DIR)
 
 run: $(TARGET)
-	./$(TARGET) --sbi ./bin/fw_jump.elf --dtb ./dts/virt.dtb --kernel ./bin/kernel --initrd ./bin/initrd
+# 	./$(TARGET) --sbi /home/rft/opensbi/build/platform/generic/firmware/fw_jump.elf --dtb ./dts/virt.dtb --kernel /home/rft/buildroot/output/images/Image --initrd /home/rft/buildroot/output/images/rootfs.cpio
+	./$(TARGET) --sbi ./bin/fw_jump.elf --dtb ./dts/virt.dtb --kernel /home/rft/buildroot/output/images/Image --initrd /home/rft/buildroot/output/images/rootfs.cpio
 # 	./$(TARGET) --test tests/isa/rv64ua-p-amoadd_d
 
 .PHONY: all dev clean run

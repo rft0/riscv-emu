@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define PLIC_NUM_INTERRUPTS  31     // adjust as needed
 
@@ -9,8 +10,10 @@
 #define PLIC_PRIORITY_BASE   0x0C000000
 #define PLIC_PENDING_BASE    0x0C001000
 #define PLIC_ENABLE_BASE     0x0C002000
+
 #define PLIC_THRESHOLD_BASE  0x0C200000
 #define PLIC_CLAIM_BASE      0x0C200004
+#define PLIC_CONTEXT_STRIDE  0x1000
 
 typedef struct {
     uint32_t priority[PLIC_NUM_INTERRUPTS + 1];
@@ -76,6 +79,7 @@ void plic_complete(uint32_t context, uint32_t irq) {
     plic.claim[context] = 0;
 }
 
+// read write problematic but works for now bcs hart count is 1
 int plic_read(uint64_t addr, void* out, size_t size) {
     uint32_t val = 0;
     if (addr >= PLIC_PRIORITY_BASE && addr < PLIC_PENDING_BASE) {

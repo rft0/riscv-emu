@@ -50,7 +50,7 @@
             riscv,ndev = <31>; // Max external interrupts PLIC can handle
             interrupt-controller;
             #interrupt-cells = <1>;
-            interrupt-parent = <&cpu0_intc>;
+            // interrupt-parent = <&cpu0_intc>;
         };
 
         uart@10000000 {

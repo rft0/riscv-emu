@@ -71,8 +71,9 @@ void cpu_step(cpu_t* cpu) {
         if ((instr & instr_table[i].mask) == instr_table[i].match) {
             // if (cpu->pc == 0x80000034) {
             //     printf("MASK: %X, MATCH: %X\n", instr_table[i].mask, instr_table[i].match);
+            //     exit(1);
             // }
-            // printf("PC: %lX, MASK: %X, MATCH: %X\n", cpu->pc, instr_table[i].mask, instr_table[i].match);
+
             instr_table[i].func(cpu, instr);
             cpu->pc = cpu->npc;
             return;

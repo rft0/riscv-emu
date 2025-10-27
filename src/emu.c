@@ -27,9 +27,9 @@ emu_t* emu_new() {
     // Initialize CPU
     emu->cpu.mode = PRIV_M;
 
-    emu->cpu.pc = SBI_LOAD_ADDR;            // Entry point for the kernel
+    emu->cpu.pc = SBI_LOAD_ADDR;            // Entry point for sbi
     emu->cpu.x[10] = 0;                     // a0 = hartid
-    emu->cpu.x[11] = DTB_LOAD_ADDR;         // a1 = payload entry
+    emu->cpu.x[11] = DTB_LOAD_ADDR;         // a1 = physical address of the FDT
 
     hardwire_mstatus(&emu->cpu);
     emu->cpu.csr.mhartid = 0;
@@ -55,15 +55,17 @@ void emu_run() {
     while (g_emu->running) {
         clint_tick(1);
 
-        // Per Core
+        // Per hart
         clint_update(&g_emu->cpu);
 
-        if (g_emu->cpu.halted && (g_emu->cpu.csr.mip & g_emu->cpu.csr.mie))
+        uint64_t pending_interrupts = g_emu->cpu.csr.mip & ((1 << 3) | (1 << 7) | (1 << 11));
+        if (g_emu->cpu.halted && (g_emu->cpu.csr.mip & (pending_interrupts != 0)))
             g_emu->cpu.halted = 0;
 
         if (!g_emu->cpu.halted) {
-            cpu_check_interrupts(&g_emu->cpu); 
-            cpu_step(&g_emu->cpu);
+            int tt = cpu_check_interrupts(&g_emu->cpu);
+            if (!tt) // Trap taken this cycle
+                cpu_step(&g_emu->cpu);
         }
     }
 }

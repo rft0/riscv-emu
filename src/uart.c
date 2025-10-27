@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 typedef struct {
@@ -31,6 +32,9 @@ static uart_t uart = {
 };
 
 int uart_read(uint64_t addr, void* out, size_t size) {
+    // printf("UART READ\n");
+    // exit(1);
+
     uint64_t offset = addr - UART_BASE;
     uint32_t val = 0;
 
@@ -70,6 +74,9 @@ int uart_read(uint64_t addr, void* out, size_t size) {
 }
 
 int uart_write(uint64_t addr, void* pval, size_t size) {
+    printf("UART WRITE\n");
+    exit(1);
+
     uint64_t offset = addr - UART_BASE;
     uint32_t value;
     memcpy(&value, pval, size);

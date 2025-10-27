@@ -1,18 +1,28 @@
-# RV64GC Emulator
-riscv-emu is a RV64GC(I, M, A, F, D Extensions) emulator made with purpose of running linux (debian riscv64 port to be more spefisific).
 
-**This project is still work in progress cpu emulation is finished but there is still many things to do (look at todos section)**
+# RV64GC Emulator
+riscv-emu is a RV64GC(I, M, A, F, D Extensions) emulator made with purpose of running linux.
+It emulates UART, CLINT and PLIC devices too. (virtio yet to be implemented)
+Currently only supports sv39 MMU.
 
 ### Requirements & Building
 #### Requirements
-* clang (msvc sucks)
+* clang
 #### Building
 ```bash
 make
 ```
 
-**It is not ready yet.**
+### Usage
+Arguments:
+* `--dtb <path>`, Path to device tree blob to load
+* `--sbi <path>`, Path to SBI elf file to load
+* `--kernel <path>`, Path to kernel image to load
+* `--initrd <path>`, Path to initial file system to load
+* `--test <path>`, Path to `riscv-tests` elf file to load
+
+**Note:** `--test` argument is only expected if program is compiled with `EMU_TESTS_ENABLED`.
+**Another Note:** Emulator currently doesn't support virtio devices so kernel and initial filesystem be compatible with this.
 
 ### Todos
-* More testing! (implement spike's proxy kernel like thing for u and s tests)
+* Possibly add tlb instruction caches for address translation.
 * Mimic GPU behavior (emulate VRAM in system memory, then transfer via SDL_Texture)

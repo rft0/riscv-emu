@@ -16,8 +16,8 @@
 
 extern emu_t* g_emu;
 
-static uint64_t mtimecmp[HART_COUNT];
-static uint32_t msip[HART_COUNT];
+static uint64_t mtimecmp[HART_COUNT] = { 0 };
+static uint32_t msip[HART_COUNT] = { 0 };
 
 static uint64_t mtime = 0;
 
@@ -66,7 +66,7 @@ int clint_read(uint64_t addr, void* out, size_t size) {
 int clint_write(uint64_t addr, void* pval, size_t size) {
     uint64_t offset = addr - CLINT_BASE;
 
-    if (offset >= CLINT_OFF_MSIP && offset < CLINT_OFF_MSIP + 0x8 * HART_COUNT) {
+    if (offset >= CLINT_OFF_MSIP && offset < CLINT_OFF_MSIP + 0x4 * HART_COUNT) {
         uint32_t hartid = (offset - CLINT_OFF_MSIP) / 4;
         uint8_t reg_offset = (offset - CLINT_OFF_MSIP) % 4;
         
@@ -99,6 +99,13 @@ int clint_write(uint64_t addr, void* pval, size_t size) {
     } else if (offset >= CLINT_OFF_MTIME && offset < CLINT_OFF_MTIME + 0x8) {
         uint8_t reg_offset = offset - CLINT_OFF_MTIME;
         memcpy((uint8_t*)&mtime + reg_offset, pval, size);
+
+        // Re-evaluate for all harts
+        if (mtime >= mtimecmp[g_emu->cpu.csr.mhartid])
+            g_emu->cpu.csr.mip |= MIP_MTIP;
+        else
+            g_emu->cpu.csr.mip &= ~MIP_MTIP;
+        
         return 1;
     }
 
