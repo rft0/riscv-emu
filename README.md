@@ -29,8 +29,9 @@ Arguments:
 * `--test <path>`, Path to `riscv-tests` elf file to load
 
 **Note:** `--test` argument is only expected if program is compiled with `EMU_TESTS_ENABLED`.\
-**Another Note:** Emulator currently doesn't support virtio devices so kernel and initial filesystem be compatible with this.
+**Another Note:** Emulator currently doesn't support virtio devices so kernel and initial filesystem must be compatible with this setup.
 
 ### Todos
-* Possibly add tlb instruction caches for address translation.
+* Add virtio for disk and network support.
+* Possibly add instruction tlbs for address translation.
 * Mimic GPU behavior (emulate VRAM in system memory, then transfer via SDL_Texture)
