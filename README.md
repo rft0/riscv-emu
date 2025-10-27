@@ -12,6 +12,10 @@ Currently only supports sv39 MMU.
 make
 ```
 
+### Testing
+Build `riscv-tests`
+Run tests.py with arguments `<emulator_path>` `<tests_dir>`
+
 ### Usage
 Arguments:
 * `--dtb <path>`, Path to device tree blob to load
