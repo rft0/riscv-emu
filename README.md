@@ -6,7 +6,7 @@ Currently only supports sv39 MMU.
 
 ### Requirements & Building
 #### Requirements
-* clang
+* clang (works well for gcc too)
 * Makefile
 #### Building
 ```bash
