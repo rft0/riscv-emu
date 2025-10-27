@@ -7,9 +7,13 @@ Currently only supports sv39 MMU.
 ### Requirements & Building
 #### Requirements
 * clang
+* Makefile
 #### Building
 ```bash
-make
+$ git clone https://github.com/rft0/riscv-emu
+$ cd riscv-emu
+$ git submodule update --init --recursive
+$ make
 ```
 
 ### Testing
