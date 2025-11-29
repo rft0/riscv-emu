@@ -74,8 +74,8 @@ int uart_read(uint64_t addr, void* out, size_t size) {
 }
 
 int uart_write(uint64_t addr, void* pval, size_t size) {
-    printf("UART WRITE\n");
-    exit(1);
+    // printf("UART WRITE\n");
+    // exit(1);
 
     uint64_t offset = addr - UART_BASE;
     uint32_t value;
